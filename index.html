@@ -1480,17 +1480,44 @@
         // =========================================================================
         // MODULE 04: LIVE GITHUB README.MD COMPOSER & VIRAL LAUNCH AUDITOR
         // =========================================================================
+        function parseBenefitRows(featuresRaw) {
+            return String(featuresRaw || '').split(/\r?\n/)
+                .map(line => line.trim().replace(/^[-+]\s+/, ''))
+                .filter(Boolean)
+                .map(line => {
+                    const match = line.match(/^\*\*(.+?)\*\*:\s*(.*)$/) || line.match(/^([^:]+):\s*(.*)$/);
+                    return match
+                        ? { capability: match[1].trim(), benefit: match[2].trim() }
+                        : { capability: 'Additional detail', benefit: line };
+                })
+                .filter(row => row.benefit);
+        }
+
+        function buildBenefitsTable(rows) {
+            const escapeCell = value => String(value).replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
+            return [
+                '| Capability | Benefit |',
+                '| --- | --- |',
+                ...rows.map(row => `| ${escapeCell(row.capability)} | ${escapeCell(row.benefit)} |`)
+            ].join('\n');
+        }
+
         function renderReadmePreview() {
             const repoFull = document.getElementById('meta-repo').value || 'your-username/repoforge-studio';
             const tagline = document.getElementById('meta-tagline').value;
             const installCmd = document.getElementById('meta-install').value;
             const lang = document.getElementById('banner-lang').value;
             const featuresRaw = document.getElementById('readme-features-input').value;
+            const benefitRows = parseBenefitRows(featuresRaw);
+            const benefitsTableMd = buildBenefitsTable(benefitRows);
 
             const showCi = document.getElementById('badge-ci').checked;
             const showLic = document.getElementById('badge-license').checked;
             const showZero = document.getElementById('badge-zerodep').checked;
             const showBench = document.getElementById('badge-bench').checked;
+            const licenseMd = showLic
+                ? '\n## License\n\nReleased under the **MIT License**. Crafted with **RepoForge Studio**.'
+                : '';
 
             const badgesMd = [];
             if (showCi) badgesMd.push(`![Build Status](https://img.shields.io/badge/build-passing-10B981?style=flat-square)`);
@@ -1514,20 +1541,16 @@
 
 > **${tagline}**
 
-## Key Engineering Highlights
+## Benefits at a Glance
 
-${featuresRaw.split('\n').filter(Boolean).map(line => `- ${line}`).join('\n')}
+${benefitsTableMd}
 
 ---
 
-## Quickstart & 1-Line Install
+## Quickstart
 
 \`\`\`bash
-# Install via package manager or build from C++20 source
 ${installCmd}
-
-# Or compile the native C++20 engine directly:
-g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge && ./repoforge --generate-all
 \`\`\`
 
 ## Interactive Terminal Telemetry
@@ -1546,19 +1569,20 @@ g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge && ./repoforge --generate-all
 | :--- | :---: | :--- |
 ${benchTableMd}
 
-## License
-
-Released under the **MIT License**. Crafted with **RepoForge Studio**.
+${licenseMd}
 `;
 
             state.generatedMarkdown = md;
             document.getElementById('readme-raw-code').textContent = md;
 
-            const featureBulletsHtml = featuresRaw.split('\n').filter(Boolean).map(line => {
-                const formatted = escXml(line)
+            const benefitRowsHtml = benefitRows.map(row => {
+                const capability = escXml(row.capability)
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--text-primary)] font-semibold">$1</strong>')
                     .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-white/[0.05] font-mono text-[#FF5500]">$1</code>');
-                return `<li class="flex items-start gap-2.5"><span class="text-[#FF5500] font-bold mt-0.5">•</span><span>${formatted}</span></li>`;
+                const benefit = escXml(row.benefit)
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--text-primary)] font-semibold">$1</strong>')
+                    .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-white/[0.05] font-mono text-[#FF5500]">$1</code>');
+                return `<tr class="border-t border-[var(--border-subtle)]"><th scope="row" class="px-3 py-3 text-left align-top font-semibold text-[var(--text-primary)]">${capability}</th><td class="px-3 py-3 align-top text-[var(--text-secondary)] leading-relaxed">${benefit}</td></tr>`;
             }).join('');
 
             const renderedHtml = `
@@ -1575,12 +1599,17 @@ Released under the **MIT License**. Crafted with **RepoForge Studio**.
                         <p class="text-sm text-[var(--text-secondary)] mt-1">${escXml(tagline)}</p>
                     </div>
                     <div class="space-y-2.5">
-                        <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Key Engineering Highlights</h3>
-                        <ul class="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">${featureBulletsHtml}</ul>
+                        <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Benefits at a Glance</h3>
+                        <div class="overflow-x-auto rounded-xl border border-[var(--border-subtle)]">
+                            <table class="min-w-full text-xs sm:text-sm">
+                                <thead class="bg-[var(--bg-elevated)]"><tr><th scope="col" class="px-3 py-2.5 text-left font-mono uppercase tracking-wider text-[var(--text-muted)]">Capability</th><th scope="col" class="px-3 py-2.5 text-left font-mono uppercase tracking-wider text-[var(--text-muted)]">Benefit</th></tr></thead>
+                                <tbody>${benefitRowsHtml}</tbody>
+                            </table>
+                        </div>
                     </div>
                     <div class="space-y-2">
                         <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Quickstart Installation</h3>
-                        <pre class="studio-subcard p-3.5 rounded-xl font-mono text-xs text-emerald-400 overflow-x-auto">${escXml(installCmd)}\ng++ -std=c++20 -O3 src/repoforge.cpp -o repoforge</pre>
+                        <pre class="studio-subcard p-3.5 rounded-xl font-mono text-xs text-emerald-400 overflow-x-auto">${escXml(installCmd)}</pre>
                     </div>
                     <div class="space-y-2">
                         <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Animated SVG Terminal Recording</h3>

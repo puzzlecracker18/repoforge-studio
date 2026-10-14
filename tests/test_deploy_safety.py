@@ -4,6 +4,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "index.html").read_text(encoding="utf-8")
+PROJECT_README = (ROOT / "README.md").read_text(encoding="utf-8")
+README_TEMPLATE = HTML.split("const md = `", 1)[1].split("            state.generatedMarkdown", 1)[0]
 
 class DeploySafetyTests(unittest.TestCase):
     def test_visible_banner_labels_preset_numbers_and_cpp_preview(self):
@@ -13,6 +15,29 @@ class DeploySafetyTests(unittest.TestCase):
 
     def test_generated_readme_includes_verification_note(self):
         self.assertIn("Verify benchmark, build, license, and dependency claims before publishing", HTML)
+
+    def test_generated_readme_turns_features_into_a_benefits_table(self):
+        self.assertIn("function parseBenefitRows(featuresRaw)", HTML)
+        self.assertIn("const benefitRows = parseBenefitRows(featuresRaw);", HTML)
+        self.assertIn("const benefitsTableMd = buildBenefitsTable(benefitRows);", HTML)
+        self.assertIn("| Capability | Benefit |", HTML)
+        self.assertIn("## Benefits at a Glance", HTML)
+
+    def test_generated_benchmark_markdown_table_has_valid_pipe_delimiters(self):
+        self.assertIn("| Implementation | Metric Result | Status |", README_TEMPLATE)
+        self.assertIn("| :--- | :---: | :--- |", README_TEMPLATE)
+        self.assertNotIn("|| Implementation |", README_TEMPLATE)
+
+    def test_repository_readme_documents_benefits_in_a_table(self):
+        self.assertIn("| Capability | Benefit |", PROJECT_README)
+        self.assertIn("| README composer |", PROJECT_README)
+
+    def test_generated_readme_only_shows_mit_license_when_user_enables_it(self):
+        self.assertIn("const licenseMd = showLic", HTML)
+        self.assertIn("${licenseMd}", README_TEMPLATE)
+        self.assertNotIn("Released under the **MIT License**. Crafted with **RepoForge Studio**.", README_TEMPLATE)
+        self.assertNotIn("compile the native C++20 engine directly", README_TEMPLATE)
+        self.assertNotIn("g++ -std=c++20 -O3 src/repoforge.cpp", README_TEMPLATE)
 
     def test_claim_badges_are_not_checked_by_default(self):
         for badge in ("badge-ci", "badge-license", "badge-zerodep", "badge-bench"):
