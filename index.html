@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoForge Studio — README &amp; SVG Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    transitionTimingFunction: {
+                        'spring': 'cubic-bezier(0.22, 1, 0.36, 1)',
+                        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-canvas: #050507;
+            --bg-surface: #0B0C10;
+            --bg-elevated: #111319;
+            --bg-glass: rgba(15, 17, 23, 0.78);
+            --border-subtle: rgba(255, 255, 255, 0.065);
+            --border-highlight: rgba(255, 255, 255, 0.14);
+            --text-primary: #F4F5F8;
+            --text-secondary: #8A8F9E;
+            --text-muted: #525665;
+            --accent: #FF5500;
+            --accent-glow: rgba(255, 85, 0, 0.18);
+            --emerald: #10B981;
+        }
+
+        html:not(.dark) {
+            --bg-canvas: #F5F4F0;
+            --bg-surface: #FFFFFF;
+            --bg-elevated: #ECEAE3;
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --border-subtle: rgba(20, 20, 19, 0.08);
+            --border-highlight: rgba(20, 20, 19, 0.16);
+            --text-primary: #111110;
+            --text-secondary: #575651;
+            --text-muted: #8A8880;
+            --accent: #FF4F00;
+            --accent-glow: rgba(255, 79, 0, 0.12);
+            --emerald: #059669;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+            letter-spacing: -0.011em;
+        }
+
+        /* Ambient Top Studio Illumination */
+        .ambient-aura {
+            position: fixed;
+            top: -260px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1100px;
+            height: 480px;
+            background: radial-gradient(ellipse at center, rgba(255, 85, 0, 0.075) 0%, rgba(16, 185, 129, 0.03) 45%, transparent 75%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(40px);
+        }
+
+        /* Precision Specular Cards with Interactive Cursor Spotlight */
+        .studio-card {
+            position: relative;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 20px 40px -15px rgba(0, 0, 0, 0.55);
+            transition: border-color 0.25s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        html:not(.dark) .studio-card {
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 12px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+        .studio-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                600px circle at var(--mouse-x, -500px) var(--mouse-y, -500px),
+                rgba(255, 255, 255, 0.035),
+                transparent 40%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .studio-subcard {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .studio-subcard:hover {
+            border-color: var(--border-highlight);
+        }
+
+        /* Precision Inputs */
+        .studio-input {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .studio-input:hover {
+            border-color: var(--border-highlight);
+        }
+        .studio-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        /* Tactile Primary Button */
+        .btn-primary {
+            background: linear-gradient(180deg, #FF6314 0%, #E64900 100%);
+            color: #FFFFFF;
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.28) inset, 0 4px 14px -2px rgba(255, 85, 0, 0.4);
+            transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(180deg, #FF7129 0%, #F04E00 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.35) inset, 0 6px 20px -2px rgba(255, 85, 0, 0.55);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-ghost {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            border-color: var(--border-highlight);
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        /* Choreographed Workspace Entrance Animation */
+        @keyframes workspaceEnter {
+            0% {
+                opacity: 0;
+                transform: translateY(8px) scale(0.994);
+                filter: blur(3px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+        .workspace-enter {
+            animation: workspaceEnter 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Stage Grid Backdrop + 3D Perspective Option */
+        .stage-grid {
+            background-color: #07080B;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 24px 24px;
+            perspective: 1400px;
+        }
+        html:not(.dark) .stage-grid {
+            background-color: #EAE8E0;
+            background-image:
+                linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
+        }
+        .stage-3d-tilt {
+            transform: rotateX(7deg) rotateY(-6deg) rotateZ(1deg) scale(0.97);
+            box-shadow: -20px 30px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        .stage-transition {
+            transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Sliding Navigation Pill */
+        #nav-pill-indicator {
+            transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Custom Minimal Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(138, 143, 158, 0.22);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(138, 143, 158, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#FF5500] selection:text-white relative">
+
+    <!-- Ambient Studio Illumination -->
+    <div class="ambient-aura"></div>
+
+    <header class="sticky top-0 z-40 backdrop-blur-xl bg-[var(--bg-glass)] border-b border-[var(--border-subtle)] px-4 lg:px-6 h-14 flex items-center justify-between gap-3">
+        <!-- Left Brand Mark -->
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="relative group cursor-pointer" onclick="switchWorkspace('terminal')">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-[#FF661A] to-[#D94600] text-white font-mono font-bold text-[11px] flex items-center justify-center shadow-md tracking-tighter border border-white/20">
+                    RF
+                </div>
+                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[var(--bg-surface)]"></span>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <span class="font-semibold text-sm tracking-tight">RepoForge</span>
+                <span class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/[0.04] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                    v2.5 Studio
+                </span>
+            </div>
+        </div>
+
+        <!-- Center Magnetic Sliding Navigation Dock -->
+        <nav class="relative flex items-center p-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] overflow-x-auto max-w-full no-scrollbar" id="main-nav-dock" aria-label="Studio Workspaces">
+            <!-- Dynamic Sliding Pill -->
+            <div id="nav-pill-indicator" class="absolute top-1 bottom-1 left-0 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-highlight)] shadow-sm pointer-events-none z-0"></div>
+
+            <button onclick="switchWorkspace('terminal')" id="ws-btn-terminal" data-ws="terminal" class="ws-nav-btn relative z-10 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-primary)] transition-colors whitespace-nowrap flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-[#FF5500]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Terminal SVG</span>
+            </button>
+
+            <button onclick="switchWorkspace('benchmark')" id="ws-btn-benchmark" data-ws="benchmark" class="ws-nav-btn relative z-10 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span>Benchmark SVG</span>
+            </button>
+
+            <button onclick="switchWorkspace('banner')" id="ws-btn-banner" data-ws="banner" class="ws-nav-btn relative z-10 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                <span>Hero &amp; Badges</span>
+            </button>
+
+            <button onclick="switchWorkspace('readme')" id="ws-btn-readme" data-ws="readme" class="ws-nav-btn relative z-10 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>README.md</span>
+            </button>
+
+            <button onclick="switchWorkspace('cpp')" id="ws-btn-cpp" data-ws="cpp" class="ws-nav-btn relative z-10 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <span>C++20 Example</span>
+            </button>
+
+            <button onclick="switchWorkspace('guide')" id="ws-btn-guide" data-ws="guide" class="ws-nav-btn relative z-10 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#FF5500] animate-ping absolute top-1.5 right-1.5 opacity-75"></span>
+                <svg class="w-3.5 h-3.5 text-[#FF5500]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                <span>GitHub Guide</span>
+            </button>
+        </nav>
+
+        <!-- Right Studio Actions: Command Palette, Preset, Ship Kit, Theme -->
+        <div class="flex items-center gap-2 shrink-0">
+            <!-- Command Palette Trigger (⌘K) -->
+            <button onclick="openCommandPalette()" class="hidden md:flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg btn-ghost text-xs">
+                <svg class="w-3.5 h-3.5 text-[var(--text-muted)]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span class="text-[var(--text-secondary)]">Command</span>
+                <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-black/30 border border-[var(--border-subtle)] text-[var(--text-muted)]">⌘K</kbd>
+            </button>
+
+            <!-- Preset Switcher -->
+            <div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs">
+                <span class="text-[10px] font-mono uppercase text-[var(--text-muted)]">Preset</span>
+                <select id="preset-selector" onchange="loadPreset(this.value)" class="bg-transparent text-[var(--text-primary)] font-medium focus:outline-none cursor-pointer text-xs">
+                    <option value="cpp_engine" class="bg-[#0B0C10]">Demo: HyperVec (C++20 SIMD)</option>
+                    <option value="ai_packer" class="bg-[#0B0C10]">Demo: CtxPack (AI Token CLI)</option>
+                    <option value="rust_proxy" class="bg-[#0B0C10]">Demo: EdgePulse (HTTP/3 Proxy)</option>
+                    <option value="local_studio" class="bg-[#0B0C10]">Demo: RepoForge Studio</option>
+                </select>
+            </div>
+
+            <!-- Ship Kit Modal Trigger -->
+            <button onclick="exportAllAssetsModal()" class="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Ship Kit</span>
+            </button>
+
+            <!-- Theme Switcher -->
+            <button onclick="toggleTheme()" class="p-2 rounded-lg btn-ghost" title="Toggle Dark/Light Studio Mode">
+                <svg id="theme-icon-sun" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg id="theme-icon-moon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="mx-4 lg:mx-6 mt-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs leading-relaxed text-amber-100 relative z-20" role="note" aria-label="Demo data warning">
+        <strong>Demo data:</strong> Preset text and performance figures are illustrative, not verified. Badges start unchecked. The C++ preview does not compile or execute C++ code. Verify every benchmark, build, license, and dependency claim before publishing generated files.
+    </div>
+
+    <div class="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/60 backdrop-blur-md px-4 lg:px-6 py-2 flex flex-wrap items-center justify-between gap-3 text-xs relative z-20">
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div class="flex items-center gap-2">
+                <span class="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Repository</span>
+                <input id="meta-repo" type="text" value="your-username/repoforge-studio" oninput="syncGlobalMeta()" class="studio-input px-2.5 py-1 rounded-md font-mono text-xs w-44 font-medium" placeholder="username/repo">
+            </div>
+            <div class="flex items-center gap-2 flex-1 sm:flex-initial">
+                <span class="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">One-Liner</span>
+                <input id="meta-tagline" type="text" value="A browser-based tool for drafting project READMEs and creating editable SVG assets." oninput="syncGlobalMeta()" class="studio-input px-2.5 py-1 rounded-md text-xs w-full sm:w-80 md:w-96" placeholder="Crisp engineering pitch...">
+            </div>
+            <div class="hidden md:flex items-center gap-2">
+                <span class="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Quickstart</span>
+                <input id="meta-install" type="text" value="Open index.html in a modern browser" oninput="syncGlobalMeta()" class="studio-input px-2.5 py-1 rounded-md font-mono text-xs w-56" placeholder="Add your verified install command">
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 ml-auto">
+            <button onclick="switchWorkspace('guide')" class="text-[11px] font-medium text-[#FF5500] hover:underline flex items-center gap-1.5">
+                <span>First time on GitHub? Open Step-by-Step Launch Guide</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div class="h-3.5 w-[1px] bg-[var(--border-subtle)] hidden sm:block"></div>
+            <button onclick="switchWorkspace('readme')" class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>Template completeness: <strong id="header-viral-score">0/100</strong></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MAIN WORKSPACE STAGE
+         ========================================================================= -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 lg:px-6 py-6 relative z-10">
+
+        <section id="workspace-terminal" class="workspace-enter grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Left Inspector Column (5 cols) -->
+            <div class="lg:col-span-5 studio-card rounded-2xl p-5 space-y-5">
+                <div class="flex items-start justify-between border-b border-[var(--border-subtle)] pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-[#FF5500] font-semibold">01 // Vector Telemetry</span>
+                        </div>
+                        <h2 class="text-base font-semibold tracking-tight mt-0.5">Animated SVG Terminal Synthesizer</h2>
+                        <p class="text-xs text-[var(--text-secondary)] mt-0.5">Compiles keyframed CLI recordings into a razor-sharp ~3.8 KB vector file.</p>
+                    </div>
+                    <button onclick="addTerminalStep()" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center gap-1 text-[var(--text-primary)] shrink-0">
+                        <svg class="w-3.5 h-3.5 text-[#FF5500]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        <span>Add Step</span>
+                    </button>
+                </div>
+
+                <!-- Terminal Studio Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Color Theme</label>
+                        <select id="term-theme" onchange="renderTerminalSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                            <option value="obsidian">Obsidian Carbon</option>
+                            <option value="linear">Linear Indigo</option>
+                            <option value="tokyo">Tokyo Night</option>
+                            <option value="catppuccin">Catppuccin Mocha</option>
+                            <option value="paper">Braun Warm Paper</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Window Frame</label>
+                        <select id="term-chrome" onchange="renderTerminalSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                            <option value="macos">macOS Traffic Lights</option>
+                            <option value="industrial">Minimalist TTY</option>
+                            <option value="tmux">Tmux Status Mux</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Window Caption</label>
+                        <input id="term-title" type="text" value="zsh — hypervec bench (80×24)" oninput="renderTerminalSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                    </div>
+                </div>
+
+                <!-- Keyframe Timeline Sequence -->
+                <div class="space-y-2.5">
+                    <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-secondary)]">
+                        <span>CLI TIMELINE SEQUENCE</span>
+                        <span id="term-step-count" class="px-2 py-0.5 rounded bg-white/[0.04] text-[var(--text-muted)]">6 keyframes</span>
+                    </div>
+                    <div id="term-steps-list" class="space-y-2 max-h-[360px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Engineering Note -->
+                <div class="studio-subcard rounded-xl p-3.5 text-xs text-[var(--text-secondary)] leading-relaxed flex items-start gap-3">
+                    <svg class="w-4 h-4 text-[#FF5500] shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div>
+                        <strong class="text-[var(--text-primary)] font-medium">About SVG previews:</strong> Vector graphics stay crisp at different display sizes. Animation support can vary across platforms, so preview exported assets on the destination before relying on them.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Live Vector Stage (7 cols) -->
+            <div class="lg:col-span-7 space-y-5">
+                <div class="studio-card rounded-2xl p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span class="text-xs font-mono font-medium">assets/terminal-demo.svg</span>
+                            <span id="term-svg-size" class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/[0.04] border border-[var(--border-subtle)] text-[var(--text-secondary)]">3.8 KB</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleStagePerspective()" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5" title="Toggle 3D Isometric Studio Inspection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+                                <span class="perspective-btn-label">3D Tilt</span>
+                            </button>
+                            <button onclick="replayTerminalAnimation()" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                <span>Replay</span>
+                            </button>
+                            <button onclick="copyAssetCode('terminal')" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                                Copy SVG
+                            </button>
+                            <button onclick="downloadAsset('terminal-demo.svg', state.generatedSVGs.terminal)" class="btn-primary px-3 py-1.5 rounded-lg text-xs font-mono font-medium">
+                                Download .SVG
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Vector Stage -->
+                    <div class="stage-grid rounded-xl p-5 sm:p-8 flex items-center justify-center min-h-[360px] overflow-hidden border border-[var(--border-subtle)]">
+                        <div id="term-svg-stage" class="stage-tilt-target stage-transition w-full max-w-[720px] rounded-xl overflow-hidden shadow-2xl"></div>
+                    </div>
+
+                    <!-- Raw XML Output -->
+                    <div class="space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+                            <span>STANDALONE VECTOR XML STREAM</span>
+                            <span>Embed via &lt;img src="./assets/terminal-demo.svg"&gt;</span>
+                        </div>
+                        <pre id="term-svg-code" class="studio-subcard rounded-xl p-3.5 text-[11px] font-mono text-[var(--text-secondary)] overflow-x-auto max-h-32 select-all"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="workspace-benchmark" class="hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-5 studio-card rounded-2xl p-5 space-y-5">
+                <div class="flex items-start justify-between border-b border-[var(--border-subtle)] pb-4">
+                    <div>
+                        <span class="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-semibold">02 // Quantitative Proof</span>
+                        <h2 class="text-base font-semibold tracking-tight mt-0.5">SVG Benchmark Chart Compiler</h2>
+                        <p class="text-xs text-[var(--text-secondary)] mt-0.5">Auto-computes relative speedup multipliers and animates vector bars.</p>
+                    </div>
+                    <button onclick="addBenchmarkRow()" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium text-[var(--text-primary)] flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        <span>Add Row</span>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Benchmark Suite Title</label>
+                        <input id="bench-title" type="text" value="Codebase Context Packing & Secret Scrubbing Latency (48 MB Repo)" oninput="renderBenchmarkSVG()" class="w-full studio-input px-3 py-1.5 rounded-lg text-xs font-medium">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Hardware Environment</label>
+                            <input id="bench-env" type="text" value="Apple M4 Max • 16 Threads • C++20 -O3" oninput="renderBenchmarkSVG()" class="w-full studio-input px-3 py-1.5 rounded-lg text-xs font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Metric Axis</label>
+                            <select id="bench-metric" onchange="renderBenchmarkSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                                <option value="ms_low">Latency in ms (Lower = Faster)</option>
+                                <option value="gbps_high">Throughput GB/s (Higher = Faster)</option>
+                                <option value="reqs_high">Throughput k req/s (Higher = Faster)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-secondary)]">
+                        <span>CONTENDERS (SELECT RADIO FOR YOUR REPO)</span>
+                        <span id="bench-speedup-pill" class="text-emerald-400 font-semibold">Example: 38.4x</span>
+                    </div>
+                    <div id="bench-rows-list" class="space-y-2 max-h-[340px] overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-5">
+                <div class="studio-card rounded-2xl p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span class="text-xs font-mono font-medium">assets/benchmark.svg</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleStagePerspective()" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5">
+                                <span class="perspective-btn-label">3D Tilt</span>
+                            </button>
+                            <button onclick="copyAssetCode('benchmark')" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                                Copy SVG
+                            </button>
+                            <button onclick="downloadAsset('benchmark.svg', state.generatedSVGs.benchmark)" class="btn-primary px-3 py-1.5 rounded-lg text-xs font-mono font-medium">
+                                Download .SVG
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stage-grid rounded-xl p-5 sm:p-8 flex items-center justify-center min-h-[360px] overflow-hidden border border-[var(--border-subtle)]">
+                        <div id="bench-svg-stage" class="stage-tilt-target stage-transition w-full max-w-[720px] rounded-xl overflow-hidden shadow-2xl"></div>
+                    </div>
+
+                    <div class="space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+                            <span>GENERATED BENCHMARK SVG CODE</span>
+                            <span>Hardware-Accelerated SMIL + CSS Bar Reveal</span>
+                        </div>
+                        <pre id="bench-svg-code" class="studio-subcard rounded-xl p-3.5 text-[11px] font-mono text-[var(--text-secondary)] overflow-x-auto max-h-32 select-all"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="workspace-banner" class="hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-5 studio-card rounded-2xl p-5 space-y-5">
+                <div class="border-b border-[var(--border-subtle)] pb-4">
+                    <span class="text-[10px] font-mono uppercase tracking-widest text-sky-400 font-semibold">03 // First-Fold Identity</span>
+                    <h2 class="text-base font-semibold tracking-tight mt-0.5">Hero Banner &amp; Architecture Pipeline</h2>
+                    <p class="text-xs text-[var(--text-secondary)] mt-0.5">Synthesizes your top-of-README hero card and 4-stage system pipeline.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Brand Accent</label>
+                        <select id="banner-accent" onchange="renderBannerSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                            <option value="#FF5500">Braun Signal (#FF5500)</option>
+                            <option value="#10B981">Emerald Core (#10B981)</option>
+                            <option value="#38BDF8">Cyan Optics (#38BDF8)</option>
+                            <option value="#A855F7">Linear Violet (#A855F7)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Canvas Geometry</label>
+                        <select id="banner-pattern" onchange="renderBannerSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                            <option value="blueprint">Precision Micro-Grid</option>
+                            <option value="isometric">Orbital Telemetry Rings</option>
+                            <option value="clean">Obsidian Matte Minimal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Release Tag</label>
+                        <input id="banner-version" type="text" value="v2.4.0 // STABLE" oninput="renderBannerSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1.5">Architecture Pill</label>
+                        <input id="banner-lang" type="text" value="C++20 / AVX-512" oninput="renderBannerSVG()" class="w-full studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 pt-2 border-t border-[var(--border-subtle)]">
+                    <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">4-Stage System Architecture Pipeline</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <input id="arch-step-1" type="text" value="01. Zero-Copy MMap" oninput="renderBannerSVG()" class="studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                        <input id="arch-step-2" type="text" value="02. SIMD AST Lexer" oninput="renderBannerSVG()" class="studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                        <input id="arch-step-3" type="text" value="03. Secret Scrubber" oninput="renderBannerSVG()" class="studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                        <input id="arch-step-4" type="text" value="04. 14GB/s Stream" oninput="renderBannerSVG()" class="studio-input px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 pt-2 border-t border-[var(--border-subtle)]">
+                    <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">README Shield Badges</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <label class="flex items-center gap-2.5 studio-subcard p-2.5 rounded-lg cursor-pointer">
+                            <input type="checkbox" id="badge-ci" onchange="syncGlobalMeta()" class="accent-[#FF5500]">
+                            <span>CI Build Passing</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 studio-subcard p-2.5 rounded-lg cursor-pointer">
+                            <input type="checkbox" id="badge-license" onchange="syncGlobalMeta()" class="accent-[#FF5500]">
+                            <span>MIT License</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 studio-subcard p-2.5 rounded-lg cursor-pointer">
+                            <input type="checkbox" id="badge-zerodep" onchange="syncGlobalMeta()" class="accent-[#FF5500]">
+                            <span>Zero Dependencies</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 studio-subcard p-2.5 rounded-lg cursor-pointer">
+                            <input type="checkbox" id="badge-bench" onchange="syncGlobalMeta()" class="accent-[#FF5500]">
+                            <span>Speedup Verified</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-5">
+                <div class="studio-card rounded-2xl p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                            <span class="text-xs font-mono font-medium">assets/hero-banner.svg</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleStagePerspective()" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5">
+                                <span class="perspective-btn-label">3D Tilt</span>
+                            </button>
+                            <button onclick="copyAssetCode('banner')" class="btn-ghost px-2.5 py-1.5 rounded-lg text-xs font-mono">
+                                Copy SVG
+                            </button>
+                            <button onclick="downloadAsset('hero-banner.svg', state.generatedSVGs.banner)" class="btn-primary px-3 py-1.5 rounded-lg text-xs font-mono font-medium">
+                                Download .SVG
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stage-grid rounded-xl p-5 sm:p-8 flex items-center justify-center min-h-[320px] overflow-hidden border border-[var(--border-subtle)]">
+                        <div id="banner-svg-stage" class="stage-tilt-target stage-transition w-full max-w-[760px] rounded-xl overflow-hidden shadow-2xl"></div>
+                    </div>
+
+                    <div class="space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+                            <span>GENERATED HERO BANNER SVG SOURCE</span>
+                            <span>100% Responsive Vector Header</span>
+                        </div>
+                        <pre id="banner-svg-code" class="studio-subcard rounded-xl p-3.5 text-[11px] font-mono text-[var(--text-secondary)] overflow-x-auto max-h-32 select-all"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="workspace-readme" class="hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-4 space-y-5">
+                <div class="studio-card rounded-2xl p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
+                        <div>
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-semibold">Template Audit</span>
+                            <h2 class="text-base font-semibold tracking-tight mt-0.5">Template Completeness</h2>
+                        </div>
+                        <div id="viral-score-big" class="text-2xl font-mono font-bold text-emerald-400">0/100</div>
+                    </div>
+
+                    <div id="viral-checklist" class="space-y-2 text-xs"></div>
+
+                    <div class="pt-3 border-t border-[var(--border-subtle)] space-y-2">
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">Engineering Feature Highlights (Markdown)</label>
+                        <textarea id="readme-features-input" rows="6" oninput="renderReadmePreview()" class="w-full studio-input p-3 rounded-xl text-xs font-mono leading-relaxed">**SVG asset builder**: Creates editable hero banners, benchmark charts, and terminal-style illustrations from form inputs.
+**README composer**: Drafts Markdown using project details and badges you choose.
+**Browser-based workflow**: Previews and exports files in the browser; this app has no backend or GitHub connection.
+**Example C++ source**: Generates a starter file for review; verify it with a real compiler before using it.</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 studio-card rounded-2xl overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-2 bg-[var(--bg-elevated)]/50">
+                    <div class="flex items-center gap-1.5 p-1 rounded-lg bg-[var(--bg-canvas)] border border-[var(--border-subtle)]">
+                        <button onclick="toggleReadmeView('preview')" id="readme-tab-preview" class="px-3 py-1 rounded-md text-xs font-mono bg-[var(--bg-elevated)] text-[var(--text-primary)] font-medium transition-all">
+                            Rendered GitHub View
+                        </button>
+                        <button onclick="toggleReadmeView('raw')" id="readme-tab-raw" class="px-3 py-1 rounded-md text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all">
+                            Raw README.md Source
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyAssetCode('readme')" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-mono">
+                            Copy README.md
+                        </button>
+                        <button onclick="downloadAsset('README.md', state.generatedMarkdown)" class="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-mono font-medium">
+                            Download README.md
+                        </button>
+                    </div>
+                </div>
+
+                <div id="readme-rendered-view" class="p-6 sm:p-8 space-y-6 max-h-[740px] overflow-y-auto"></div>
+                <div id="readme-raw-view" class="hidden p-5">
+                    <pre id="readme-raw-code" class="studio-subcard p-4 rounded-xl text-xs font-mono text-[var(--text-primary)] overflow-x-auto max-h-[680px] leading-relaxed select-all"></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="workspace-cpp" class="hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-4 space-y-5">
+                <div class="studio-card rounded-2xl p-5 space-y-4">
+                    <div class="border-b border-[var(--border-subtle)] pb-4">
+                        <span class="text-[10px] font-mono uppercase tracking-widest text-purple-400 font-semibold">05 // Example Source</span>
+                        <h2 class="text-base font-semibold tracking-tight mt-0.5">C++20 Source Example (`repoforge.cpp`)</h2>
+                        <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+                            This workspace generates an example C++20 source file. Review it and compile it yourself before using it; the browser preview does not execute or validate the source.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div class="studio-subcard rounded-xl p-3.5 space-y-1">
+                            <div class="font-mono font-semibold text-[#FF5500] flex items-center justify-between">
+                                <span>std::chrono Microsecond Timer</span>
+                                <span class="text-[10px] text-[var(--text-muted)]">C++20</span>
+                            </div>
+                            <p class="text-[var(--text-secondary)] text-[11px] leading-relaxed">Measures exact execution time and synthesizes standalone Retina SVG benchmark charts without a single external library.</p>
+                        </div>
+                        <div class="studio-subcard rounded-xl p-3.5 space-y-1">
+                            <div class="font-mono font-semibold text-emerald-400 flex items-center justify-between">
+                                <span>Single-File Translation Unit</span>
+                                <span class="text-[10px] text-[var(--text-muted)]">-O3 Ready</span>
+                            </div>
+                            <p class="text-[var(--text-secondary)] text-[11px] leading-relaxed">Example C++20 starter source. The preview button does not compile or run it; test the downloaded source with a real compiler before relying on it.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
+                        <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">Terminal Compile Command</label>
+                        <div class="studio-subcard p-3 rounded-xl font-mono text-[11px] space-y-1.5">
+                            <div class="text-emerald-400"># Build optimized native binary</div>
+                            <div class="select-all text-[var(--text-primary)]">g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge</div>
+                            <div class="text-emerald-400 pt-1"># Run vector benchmark synthesizer</div>
+                            <div class="select-all text-[var(--text-primary)]">./repoforge --generate-all</div>
+                        </div>
+                    </div>
+
+                    <button onclick="simulateCppExecution()" class="w-full btn-primary py-2.5 px-4 rounded-xl font-mono text-xs font-medium flex items-center justify-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Preview Sample Output (Simulation Only)</span>
+                    </button>
+                    <pre id="cpp-sim-output" class="studio-subcard rounded-xl p-3.5 font-mono text-[11px] text-emerald-400 hidden whitespace-pre-wrap leading-relaxed"></pre>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 studio-card rounded-2xl overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-2 bg-[var(--bg-elevated)]/50">
+                    <div class="flex items-center gap-2.5 font-mono text-xs">
+                        <span class="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/25 font-medium">ISO C++20</span>
+                        <span class="font-semibold">src/repoforge.cpp</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyAssetCode('cpp')" class="btn-ghost px-3 py-1.5 rounded-lg text-xs font-mono">
+                            Copy C++20 Source
+                        </button>
+                        <button onclick="downloadAsset('repoforge.cpp', state.generatedCpp)" class="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-mono font-medium">
+                            Download repoforge.cpp
+                        </button>
+                    </div>
+                </div>
+                <div class="p-5">
+                    <pre id="cpp-source-code" class="studio-subcard p-4 rounded-xl text-xs font-mono text-[var(--text-primary)] overflow-x-auto max-h-[680px] leading-relaxed select-all"></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="workspace-guide" class="hidden grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Left Column: Interactive GitHub Profile & Progress Tracker (4 cols) -->
+            <div class="lg:col-span-4 space-y-5 lg:sticky lg:top-20">
+                <div class="studio-card rounded-2xl p-5 space-y-5">
+                    <div class="border-b border-[var(--border-subtle)] pb-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-[#FF5500] font-semibold">06 // First-Timer's Masterclass</span>
+                            <span id="guide-progress-badge" class="text-xs font-mono font-bold text-emerald-400">0 / 6 Done</span>
+                        </div>
+                        <h2 class="text-base font-semibold tracking-tight mt-1">Your First GitHub Launch Roadmap</h2>
+                        <p class="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+                            Never published a repository before? Enter your GitHub username below—every terminal command and link on the right will customize itself for you automatically.
+                        </p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)]">
+                            <span>LAUNCH COMPLETION</span>
+                            <span id="guide-progress-pct">0%</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-[var(--bg-elevated)] overflow-hidden border border-[var(--border-subtle)]">
+                            <div id="guide-progress-bar" class="h-full bg-gradient-to-r from-[#FF5500] to-emerald-400 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Personalize Commands Inputs -->
+                    <div class="space-y-3 pt-1">
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1">1. Your GitHub Username</label>
+                            <input id="guide-username" type="text" value="your-username" oninput="updateGitHubGuide()" class="w-full studio-input px-3 py-1.5 rounded-lg text-xs font-mono" placeholder="e.g. arjun-codes">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)] mb-1">2. Repository Name</label>
+                            <input id="guide-reponame" type="text" value="repoforge" oninput="updateGitHubGuide()" class="w-full studio-input px-3 py-1.5 rounded-lg text-xs font-mono" placeholder="e.g. repoforge">
+                        </div>
+                    </div>
+
+                    <!-- Interactive Visual Folder Structure -->
+                    <div class="space-y-2 pt-2 border-t border-[var(--border-subtle)]">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase tracking-wider text-[var(--text-muted)]">Target Folder Layout</span>
+                            <span class="text-[10px] font-mono text-emerald-400">6 Files</span>
+                        </div>
+                        <div class="studio-subcard rounded-xl p-3.5 font-mono text-xs space-y-1.5 text-[var(--text-secondary)]">
+                            <div class="text-[var(--text-primary)] font-semibold flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#FF5500]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                                <span id="tree-root-name">repoforge/</span>
+                            </div>
+                            <div class="pl-4 flex items-center justify-between">
+                                <span>├── README.md</span>
+                                <button onclick="downloadAsset('README.md', state.generatedMarkdown)" class="text-[10px] text-[#FF5500] hover:underline">↓ Get</button>
+                            </div>
+                            <div class="pl-4 flex items-center justify-between">
+                                <span>├── index.html</span>
+                                <span class="text-[10px] text-emerald-400">This App</span>
+                            </div>
+                            <div class="pl-4 text-[var(--text-primary)]">├── src/</div>
+                            <div class="pl-8 flex items-center justify-between">
+                                <span>└── repoforge.cpp</span>
+                                <button onclick="downloadAsset('repoforge.cpp', state.generatedCpp)" class="text-[10px] text-[#FF5500] hover:underline">↓ Get</button>
+                            </div>
+                            <div class="pl-4 text-[var(--text-primary)]">└── assets/</div>
+                            <div class="pl-8 flex items-center justify-between">
+                                <span>├── hero-banner.svg</span>
+                                <button onclick="downloadAsset('hero-banner.svg', state.generatedSVGs.banner)" class="text-[10px] text-[#FF5500] hover:underline">↓ Get</button>
+                            </div>
+                            <div class="pl-8 flex items-center justify-between">
+                                <span>├── terminal-demo.svg</span>
+                                <button onclick="downloadAsset('terminal-demo.svg', state.generatedSVGs.terminal)" class="text-[10px] text-[#FF5500] hover:underline">↓ Get</button>
+                            </div>
+                            <div class="pl-8 flex items-center justify-between">
+                                <span>└── benchmark.svg</span>
+                                <button onclick="downloadAsset('benchmark.svg', state.generatedSVGs.benchmark)" class="text-[10px] text-[#FF5500] hover:underline">↓ Get</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="exportAllAssetsModal()" class="w-full btn-primary py-2.5 px-4 rounded-xl font-mono text-xs font-medium flex items-center justify-center gap-2">
+                        <span>Download All Files (Ship Kit)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Step-by-Step Interactive Walkthrough (8 cols) -->
+            <div class="lg:col-span-8 space-y-4" id="guide-steps-container">
+                <!-- Populated dynamically by renderGitHubGuideSteps() -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Command Palette (⌘K / Ctrl+K) -->
+    <div id="cmd-palette-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-start justify-center pt-20 p-4" onclick="if(event.target === this) closeCommandPalette()">
+        <div class="studio-card rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-[var(--border-highlight)]">
+            <div class="px-4 py-3 border-b border-[var(--border-subtle)] flex items-center gap-3">
+                <svg class="w-4 h-4 text-[#FF5500]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input id="cmd-palette-input" type="text" oninput="filterCommandPalette(this.value)" placeholder="Type a command or jump to workspace..." class="w-full bg-transparent text-xs font-mono text-[var(--text-primary)] focus:outline-none">
+                <kbd class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] cursor-pointer" onclick="closeCommandPalette()">ESC</kbd>
+            </div>
+            <div id="cmd-palette-list" class="p-2 max-h-80 overflow-y-auto space-y-1 text-xs font-mono"></div>
+        </div>
+    </div>
+
+    <!-- Ship Kit Modal -->
+    <div id="ship-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4" onclick="if(event.target === this) closeShipModal()">
+        <div class="studio-card rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl border border-[var(--border-highlight)]">
+            <div class="flex items-start justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
+                <div>
+                    <span class="text-[10px] font-mono uppercase tracking-widest text-[#FF5500] font-semibold">Complete Repository Bundle</span>
+                    <h3 class="text-lg font-semibold tracking-tight mt-0.5">Download Your GitHub Launch Kit</h3>
+                </div>
+                <button onclick="closeShipModal()" class="btn-ghost px-2.5 py-1 rounded-lg font-mono text-xs">✕</button>
+            </div>
+
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Download each file below and place the `.svg` files inside an `assets/` folder and `repoforge.cpp` inside a `src/` folder. Need help pushing to GitHub? Click <strong class="text-[var(--text-primary)]">Open Beginner GitHub Guide</strong> below.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
+                <button onclick="downloadAsset('README.md', state.generatedMarkdown)" class="p-3.5 rounded-xl studio-subcard flex items-center justify-between text-left group">
+                    <div>
+                        <div class="font-semibold text-[var(--text-primary)] group-hover:text-[#FF5500] transition-colors">README.md</div>
+                        <div class="text-[10px] text-[var(--text-muted)]">Main Repository Frontpage</div>
+                    </div>
+                    <span class="text-[#FF5500] font-bold">↓</span>
+                </button>
+                <button onclick="downloadAsset('terminal-demo.svg', state.generatedSVGs.terminal)" class="p-3.5 rounded-xl studio-subcard flex items-center justify-between text-left group">
+                    <div>
+                        <div class="font-semibold text-[var(--text-primary)] group-hover:text-[#FF5500] transition-colors">assets/terminal-demo.svg</div>
+                        <div class="text-[10px] text-[var(--text-muted)]">Animated Vector CLI Demo</div>
+                    </div>
+                    <span class="text-[#FF5500] font-bold">↓</span>
+                </button>
+                <button onclick="downloadAsset('benchmark.svg', state.generatedSVGs.benchmark)" class="p-3.5 rounded-xl studio-subcard flex items-center justify-between text-left group">
+                    <div>
+                        <div class="font-semibold text-[var(--text-primary)] group-hover:text-[#FF5500] transition-colors">assets/benchmark.svg</div>
+                        <div class="text-[10px] text-[var(--text-muted)]">Retina Speedup Bar Chart</div>
+                    </div>
+                    <span class="text-[#FF5500] font-bold">↓</span>
+                </button>
+                <button onclick="downloadAsset('hero-banner.svg', state.generatedSVGs.banner)" class="p-3.5 rounded-xl studio-subcard flex items-center justify-between text-left group">
+                    <div>
+                        <div class="font-semibold text-[var(--text-primary)] group-hover:text-[#FF5500] transition-colors">assets/hero-banner.svg</div>
+                        <div class="text-[10px] text-[var(--text-muted)]">Hero &amp; Social Graph Card</div>
+                    </div>
+                    <span class="text-[#FF5500] font-bold">↓</span>
+                </button>
+                <button onclick="downloadAsset('repoforge.cpp', state.generatedCpp)" class="sm:col-span-2 p-3.5 rounded-xl studio-subcard flex items-center justify-between text-left group border-emerald-500/30">
+                    <div>
+                        <div class="font-semibold text-emerald-400">src/repoforge.cpp (Example C++20 Source)</div>
+                        <div class="text-[10px] text-[var(--text-secondary)]">Starter source file; review and validate it with a real compiler before use.</div>
+                    </div>
+                    <span class="text-emerald-400 font-bold">↓ .CPP</span>
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[var(--border-subtle)]">
+                <button onclick="closeShipModal(); switchWorkspace('guide');" class="btn-ghost px-3.5 py-2 rounded-xl text-xs font-mono text-[#FF5500] border-[#FF5500]/30">
+                    → Open Step-by-Step GitHub Launch Guide
+                </button>
+                <button onclick="closeShipModal()" class="btn-primary px-4 py-2 rounded-xl text-xs font-mono font-medium">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 studio-card border-l-4 border-l-[#FF5500] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-[#FF5500]"></span>
+        <span id="toast-msg" class="text-xs font-mono font-medium">Copied to clipboard</span>
+    </div>
+
+    <script>
+        // =========================================================================
+        // GLOBAL STUDIO STATE & PRESETS
+        // =========================================================================
+        const PRESETS = {
+            cpp_engine: {
+                repo: "acme-labs/hypervec",
+                tagline: "Zero-dependency C++20 SIMD vector & context engine running at 14.2 GB/s",
+                install: "brew install acme-labs/tap/hypervec",
+                version: "v2.4.0 // AVX-512",
+                lang: "C++20 / SIMD",
+                arch: ["01. Zero-Copy MMap", "02. SIMD AST Lexer", "03. Secret Scrubber", "04. 14GB/s Stream"],
+                termTitle: "zsh — hypervec bench ./src (80×24)",
+                termSteps: [
+                    { type: "cmd", text: "hypervec pack ./src --redact-secrets --simd=avx2" },
+                    { type: "info", text: "▸ Scanning 1,420 files (48.6 MB) across 16 hardware threads..." },
+                    { type: "warn", text: "⚑ Redacted 3 leaked credentials (AWS_ACCESS_KEY, JWT_SECRET)" },
+                    { type: "success", text: "✓ Packed 412,800 -> 94,100 tokens (-77.2% saved) in 6.4 ms" },
+                    { type: "cmd", text: "hypervec bench --iterations=10000" },
+                    { type: "success", text: "★ P99 Latency: 0.42 ms | Throughput: 14.28 GB/s (38.4x faster)" }
+                ],
+                benchTitle: "Codebase Context Packing & Secret Scrubbing Latency (48 MB Repo)",
+                benchEnv: "Apple M4 Max • 16 Threads • C++20 -O3",
+                benchMetric: "ms_low",
+                benchRows: [
+                    { name: "hypervec (C++20 SIMD)", val: 6.4, ours: true },
+                    { name: "rust-repomix-cli", val: 42.8, ours: false },
+                    { name: "node-context-packer", val: 189.5, ours: false },
+                    { name: "python-tiktoken-pack", val: 245.8, ours: false }
+                ]
+            },
+            ai_packer: {
+                repo: "devforge/ctxpack",
+                tagline: "Cut LLM token usage by 78% and scrub leaked API keys before they hit OpenAI or Claude",
+                install: "npx ctxpack@latest init",
+                version: "v1.9.2 // LOCAL-FIRST",
+                lang: "TypeScript + C++ Core",
+                arch: ["01. Git Diff Hook", "02. AST Dead-Strip", "03. Entropy Key Guard", "04. XML/MD Bundle"],
+                termTitle: "zsh — ctxpack ./project",
+                termSteps: [
+                    { type: "cmd", text: "ctxpack ./app --target claude-4-sonnet --scrub" },
+                    { type: "info", text: "▸ Stripping lockfiles, comments & SVG noise across 318 files..." },
+                    { type: "warn", text: "⚑ Blocked 2 .env secrets from entering LLM prompt context" },
+                    { type: "success", text: "✓ Prompt bundle ready: 18,400 tokens ($0.05 saved per query)" }
+                ],
+                benchTitle: "Token Compression & Secret Scan Speed (100k LOC Monorepo)",
+                benchEnv: "AMD Ryzen 9 9950X • NVMe Gen5",
+                benchMetric: "ms_low",
+                benchRows: [
+                    { name: "ctxpack (Native Core)", val: 8.2, ours: true },
+                    { name: "repomix (Node.js)", val: 164.0, ours: false },
+                    { name: "cursor-context-sync", val: 230.0, ours: false },
+                    { name: "manual-script.py", val: 410.5, ours: false }
+                ]
+            },
+            rust_proxy: {
+                repo: "netkernel/edgepulse",
+                tagline: "Sub-millisecond zero-copy HTTP/3 reverse proxy & WAF written in C++20 / io_uring",
+                install: "curl -fsSL https://edgepulse.dev/install.sh | sh",
+                version: "v3.1.0 // IO_URING",
+                lang: "C++20 / Linux Kernel",
+                arch: ["01. Socket Splice", "02. Lock-Free Ring", "03. SIMD Header Parse", "04. TLS 1.3 Offload"],
+                termTitle: "bash — edgepulse --workers 32",
+                termSteps: [
+                    { type: "cmd", text: "edgepulse start --config ./edge.toml --io-uring" },
+                    { type: "info", text: "▸ Bound 32 lock-free worker rings on port :443 (TLS 1.3)" },
+                    { type: "cmd", text: "wrk -t16 -c1000 -d10s https://127.0.0.1:443/health" },
+                    { type: "success", text: "✓ 1,842,900 req/sec | Avg Latency: 0.31ms | 0 Socket Drops" }
+                ],
+                benchTitle: "HTTP/3 Reverse Proxy Throughput (Thousands of Req/sec)",
+                benchEnv: "Linux 6.12 • io_uring • 32 Cores",
+                benchMetric: "reqs_high",
+                benchRows: [
+                    { name: "edgepulse (io_uring)", val: 1842, ours: true },
+                    { name: "pingora-rust", val: 1120, ours: false },
+                    { name: "nginx-tuned", val: 640, ours: false },
+                    { name: "envoy-proxy", val: 485, ours: false }
+                ]
+            },
+            local_studio: {
+                repo: "your-username/repoforge",
+                tagline: "Zero-cloud studio & C++20 CLI for animated SVG terminals, benchmarks & viral GitHub READMEs",
+                install: "g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge",
+                version: "v2.5.0 // STUDIO",
+                lang: "C++20 + SVG Studio",
+                arch: ["01. CLI Timeline", "02. Keyframe Solver", "03. Vector Emitter", "04. Markdown AST"],
+                termTitle: "zsh — ./repoforge --generate-all",
+                termSteps: [
+                    { type: "cmd", text: "g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge && ./repoforge" },
+                    { type: "info", text: "▸ Synthesizing pure-SVG terminal keyframes & benchmark bars..." },
+                    { type: "success", text: "✓ Emitted ./assets/hero-banner.svg (2.4 KB)" },
+                    { type: "success", text: "✓ Emitted ./assets/terminal-demo.svg (3.8 KB, 60fps CSS)" },
+                    { type: "success", text: "✓ Compiled viral README.md (Launch Readiness: 98/100)" }
+                ],
+                benchTitle: "README Demo Asset Weight in KB (Lower Loads Faster)",
+                benchEnv: "GitHub Camo CDN • 4K Retina Display",
+                benchMetric: "ms_low",
+                benchRows: [
+                    { name: "RepoForge Pure SVG", val: 3.8, ours: true },
+                    { name: "Asciinema GIF Export", val: 4850.0, ours: false },
+                    { name: "ScreenRecording.gif", val: 12400.0, ours: false }
+                ]
+            }
+        };
+
+        const state = {
+            activeWorkspace: 'terminal',
+            readmeView: 'preview',
+            stage3DTilt: false,
+            termSteps: JSON.parse(JSON.stringify(PRESETS.cpp_engine.termSteps)),
+            benchRows: JSON.parse(JSON.stringify(PRESETS.cpp_engine.benchRows)),
+            generatedSVGs: {
+                terminal: '',
+                benchmark: '',
+                banner: ''
+            },
+            generatedMarkdown: '',
+            generatedCpp: '',
+            guideCompletedSteps: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false }
+        };
+
+        // =========================================================================
+        // INTERACTIVE CURSOR SPOTLIGHT EFFECT ON STUDIO CARDS
+        // =========================================================================
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.studio-card');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Keyboard shortcut for Command Palette (⌘K or Ctrl+K)
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                const modal = document.getElementById('cmd-palette-modal');
+                if (modal.classList.contains('hidden')) {
+                    openCommandPalette();
+                } else {
+                    closeCommandPalette();
+                }
+            } else if (e.key === 'Escape') {
+                closeCommandPalette();
+                closeShipModal();
+            }
+        });
+
+        // =========================================================================
+        // UTILITY HELPERS
+        // =========================================================================
+        function escXml(unsafe) {
+            return String(unsafe || '')
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2600);
+        }
+
+        function copyTextToClipboard(text, label) {
+            const fallbackCopy = () => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(`Copied ${label}`);
+                } catch (err) {
+                    showToast(`Failed to copy ${label}`);
+                }
+                document.body.removeChild(ta);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(`Copied ${label}`);
+                }).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        function copyAssetCode(type) {
+            if (type === 'terminal') copyTextToClipboard(state.generatedSVGs.terminal, 'terminal-demo.svg');
+            if (type === 'benchmark') copyTextToClipboard(state.generatedSVGs.benchmark, 'benchmark.svg');
+            if (type === 'banner') copyTextToClipboard(state.generatedSVGs.banner, 'hero-banner.svg');
+            if (type === 'readme') copyTextToClipboard(state.generatedMarkdown, 'README.md');
+            if (type === 'cpp') copyTextToClipboard(state.generatedCpp, 'repoforge.cpp');
+        }
+
+        function downloadAsset(filename, content) {
+            const mime = filename.endsWith('.svg') ? 'image/svg+xml;charset=utf-8' : 'text/plain;charset=utf-8';
+            const blob = new Blob([content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded ${filename}`);
+        }
+
+        function toggleStagePerspective() {
+            state.stage3DTilt = !state.stage3DTilt;
+            document.querySelectorAll('.stage-tilt-target').forEach(el => {
+                el.classList.toggle('stage-3d-tilt', state.stage3DTilt);
+            });
+            document.querySelectorAll('.perspective-btn-label').forEach(lbl => {
+                lbl.textContent = state.stage3DTilt ? 'Flat 2D' : '3D Tilt';
+            });
+        }
+
+        // =========================================================================
+        // MODULE 01: PURE-SVG ANIMATED TERMINAL SYNTHESIZER
+        // =========================================================================
+        const TERM_PALETTES = {
+            obsidian:   { bg: "#090A0E", header: "#11131A", border: "#222634", text: "#E5E7EB", muted: "#646A7A", cmd: "#FFFFFF", prompt: "#FF5500", info: "#38BDF8", warn: "#FBBF24", success: "#10B981" },
+            linear:     { bg: "#0B0C14", header: "#121422", border: "#252942", text: "#E2E8F0", muted: "#64748B", cmd: "#F8FAFC", prompt: "#818CF8", info: "#60A5FA", warn: "#F59E0B", success: "#34D399" },
+            tokyo:      { bg: "#16161E", header: "#1A1B26", border: "#292E42", text: "#C0CAF5", muted: "#565F89", cmd: "#7DCFFF", prompt: "#BB9AF7", info: "#7AA2F7", warn: "#E0AF68", success: "#9ECE6A" },
+            catppuccin: { bg: "#1E1E2E", header: "#181825", border: "#313244", text: "#CDD6F4", muted: "#6C7086", cmd: "#F5E0DC", prompt: "#FAB387", info: "#89B4FA", warn: "#F9E2AF", success: "#A6E3A1" },
+            paper:      { bg: "#F7F5F0", header: "#EAE6DC", border: "#D5D0C2", text: "#181816", muted: "#78756C", cmd: "#111110", prompt: "#FF4F00", info: "#2563EB", warn: "#D97706", success: "#059669" }
+        };
+
+        function renderTerminalStepsEditor() {
+            const list = document.getElementById('term-steps-list');
+            document.getElementById('term-step-count').textContent = `${state.termSteps.length} keyframes`;
+            list.innerHTML = state.termSteps.map((step, idx) => `
+                <div class="studio-subcard rounded-xl p-2 flex items-center gap-2">
+                    <select onchange="updateTermStep(${idx}, 'type', this.value)" class="studio-input px-2 py-1 rounded-lg text-[11px] font-mono font-medium shrink-0">
+                        <option value="cmd" ${step.type === 'cmd' ? 'selected' : ''}>$ Command</option>
+                        <option value="info" ${step.type === 'info' ? 'selected' : ''}>▸ Info</option>
+                        <option value="warn" ${step.type === 'warn' ? 'selected' : ''}>⚑ Warning</option>
+                        <option value="success" ${step.type === 'success' ? 'selected' : ''}>✓ Success</option>
+                    </select>
+                    <input type="text" value="${escXml(step.text)}" oninput="updateTermStep(${idx}, 'text', this.value)" class="studio-input px-2.5 py-1 rounded-lg text-xs font-mono flex-1 min-w-0">
+                    <button onclick="removeTermStep(${idx})" class="text-[var(--text-muted)] hover:text-rose-400 px-1.5 py-0.5 text-xs font-mono transition-colors" title="Delete Step">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function updateTermStep(idx, key, val) {
+            state.termSteps[idx][key] = val;
+            renderTerminalSVG();
+            renderReadmePreview();
+        }
+
+        function addTerminalStep() {
+            state.termSteps.push({ type: "success", text: "✓ Benchmark completed in 0.38ms (Zero heap allocations)" });
+            renderTerminalStepsEditor();
+            renderTerminalSVG();
+            renderReadmePreview();
+        }
+
+        function removeTermStep(idx) {
+            if (state.termSteps.length <= 1) return;
+            state.termSteps.splice(idx, 1);
+            renderTerminalStepsEditor();
+            renderTerminalSVG();
+            renderReadmePreview();
+        }
+
+        function renderTerminalSVG() {
+            const paletteKey = document.getElementById('term-theme').value;
+            const chrome = document.getElementById('term-chrome').value;
+            const title = document.getElementById('term-title').value;
+            const pal = TERM_PALETTES[paletteKey] || TERM_PALETTES.obsidian;
+
+            const width = 720;
+            const lineHeight = 28;
+            const topPad = 66;
+            const height = Math.max(240, topPad + state.termSteps.length * lineHeight + 36);
+            const totalDuration = Math.max(6, state.termSteps.length * 1.35 + 2);
+
+            let keyframesCSS = '';
+            let linesSVG = '';
+
+            state.termSteps.forEach((step, i) => {
+                const y = topPad + i * lineHeight;
+                const appearPct = Math.min(85, Math.round(((i * 1.1 + 0.25) / totalDuration) * 100));
+                keyframesCSS += `
+        @keyframes rf-line-${i} {
+            0%, ${Math.max(0, appearPct - 1)}% { opacity: 0; transform: translateY(5px); }
+            ${Math.min(96, appearPct + 4)}%, 100% { opacity: 1; transform: translateY(0); }
+        }
+        .rf-step-${i} {
+            animation: rf-line-${i} ${totalDuration.toFixed(1)}s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+        }`;
+
+                let color = pal.text;
+                let prefix = '';
+                if (step.type === 'cmd') {
+                    color = pal.cmd;
+                    prefix = `<tspan fill="${pal.prompt}" font-weight="700">❯ </tspan>`;
+                } else if (step.type === 'info') {
+                    color = pal.info;
+                } else if (step.type === 'warn') {
+                    color = pal.warn;
+                } else if (step.type === 'success') {
+                    color = pal.success;
+                }
+
+                linesSVG += `
+    <g class="rf-step-${i}">
+        <text x="24" y="${y}" font-family="'JetBrains Mono', 'SFMono-Regular', Consolas, monospace" font-size="13" fill="${color}" font-weight="${step.type === 'cmd' ? '600' : '400'}">${prefix}${escXml(step.text)}</text>
+    </g>`;
+            });
+
+            let headerDecor = '';
+            if (chrome === 'macos') {
+                headerDecor = `
+        <circle cx="22" cy="21" r="5.5" fill="#FF5F56"/>
+        <circle cx="40" cy="21" r="5.5" fill="#FFBD2E"/>
+        <circle cx="58" cy="21" r="5.5" fill="#27C93F"/>`;
+            } else if (chrome === 'industrial') {
+                headerDecor = `
+        <rect x="16" y="13" width="32" height="16" rx="4" fill="${pal.prompt}"/>
+        <text x="32" y="24" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#FFFFFF" text-anchor="middle">TTY</text>`;
+            } else {
+                headerDecor = `
+        <rect x="16" y="13" width="58" height="16" rx="3" fill="#10B981"/>
+        <text x="45" y="24" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" fill="#052E16" text-anchor="middle">0:zsh*</text>`;
+            }
+
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%">
+    <style>${keyframesCSS}
+        @keyframes rf-cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+        .rf-cursor-blink { animation: rf-cursor 1s infinite; }
+    </style>
+    <rect width="${width}" height="${height}" rx="12" fill="${pal.bg}" stroke="${pal.border}" stroke-width="1.5"/>
+    <path d="M 1 12 Q 1 1 12 1 L ${width - 12} 1 Q ${width - 1} 1 ${width - 1} 12 L ${width - 1} 42 L 1 42 Z" fill="${pal.header}"/>
+    <line x1="0" y1="42" x2="${width}" y2="42" stroke="${pal.border}" stroke-width="1"/>
+    ${headerDecor}
+    <text x="${width / 2}" y="25" font-family="'JetBrains Mono', monospace" font-size="11.5" fill="${pal.muted}" text-anchor="middle" font-weight="500">${escXml(title)}</text>
+    <text x="${width - 20}" y="25" font-family="'JetBrains Mono', monospace" font-size="10" fill="${pal.muted}" text-anchor="end">SVG//60FPS</text>
+    ${linesSVG}
+    <rect class="rf-cursor-blink" x="24" y="${topPad + state.termSteps.length * lineHeight - 11}" width="8" height="15" fill="${pal.prompt}" rx="1.5"/>
+</svg>`;
+
+            state.generatedSVGs.terminal = svg;
+            document.getElementById('term-svg-stage').innerHTML = svg;
+            document.getElementById('term-svg-code').textContent = svg;
+            const kb = (new Blob([svg]).size / 1024).toFixed(1);
+            document.getElementById('term-svg-size').textContent = `${kb} KB`;
+        }
+
+        function replayTerminalAnimation() {
+            const stage = document.getElementById('term-svg-stage');
+            const html = stage.innerHTML;
+            stage.innerHTML = '';
+            requestAnimationFrame(() => {
+                stage.innerHTML = html;
+            });
+        }
+
+        // =========================================================================
+        // MODULE 02: PURE-SVG BENCHMARK BAR CHART COMPILER
+        // =========================================================================
+        function renderBenchmarkRowsEditor() {
+            const list = document.getElementById('bench-rows-list');
+            list.innerHTML = state.benchRows.map((row, idx) => `
+                <div class="studio-subcard rounded-xl p-2.5 flex items-center gap-2">
+                    <input type="radio" name="bench-ours" ${row.ours ? 'checked' : ''} onchange="setBenchmarkOurs(${idx})" class="accent-[#FF5500]" title="Mark as Primary Project">
+                    <input type="text" value="${escXml(row.name)}" oninput="updateBenchRow(${idx}, 'name', this.value)" class="studio-input px-2.5 py-1 rounded-lg text-xs font-mono flex-1 min-w-0">
+                    <input type="number" step="0.1" value="${row.val}" oninput="updateBenchRow(${idx}, 'val', parseFloat(this.value) || 0.1)" class="studio-input px-2.5 py-1 rounded-lg text-xs font-mono w-24 text-right">
+                    <button onclick="removeBenchRow(${idx})" class="text-[var(--text-muted)] hover:text-rose-400 px-1.5 text-xs font-mono">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function setBenchmarkOurs(idx) {
+            state.benchRows.forEach((r, i) => r.ours = (i === idx));
+            renderBenchmarkSVG();
+            renderReadmePreview();
+        }
+
+        function updateBenchRow(idx, key, val) {
+            state.benchRows[idx][key] = val;
+            renderBenchmarkSVG();
+            renderReadmePreview();
+        }
+
+        function addBenchmarkRow() {
+            state.benchRows.push({ name: "legacy-baseline", val: 310.0, ours: false });
+            renderBenchmarkRowsEditor();
+            renderBenchmarkSVG();
+            renderReadmePreview();
+        }
+
+        function removeBenchRow(idx) {
+            if (state.benchRows.length <= 2) return;
+            state.benchRows.splice(idx, 1);
+            if (!state.benchRows.some(r => r.ours)) state.benchRows[0].ours = true;
+            renderBenchmarkRowsEditor();
+            renderBenchmarkSVG();
+            renderReadmePreview();
+        }
+
+        function renderBenchmarkSVG() {
+            const title = document.getElementById('bench-title').value;
+            const env = document.getElementById('bench-env').value;
+            const metric = document.getElementById('bench-metric').value;
+
+            const unit = metric === 'ms_low' ? 'ms' : (metric === 'gbps_high' ? 'GB/s' : 'k req/s');
+            const lowerBetter = metric === 'ms_low';
+
+            const maxVal = Math.max(...state.benchRows.map(r => r.val), 0.01);
+            const ourRow = state.benchRows.find(r => r.ours) || state.benchRows[0];
+            const worstRow = lowerBetter
+                ? state.benchRows.reduce((a, b) => a.val > b.val ? a : b, state.benchRows[0])
+                : state.benchRows.reduce((a, b) => a.val < b.val ? a : b, state.benchRows[0]);
+
+            const multiplier = lowerBetter
+                ? (worstRow.val / Math.max(0.001, ourRow.val)).toFixed(1)
+                : (ourRow.val / Math.max(0.001, worstRow.val)).toFixed(1);
+
+            const speedupText = `${multiplier}x Faster`;
+            document.getElementById('bench-speedup-pill').textContent = `Calculated from inputs: ${speedupText} vs ${worstRow.name}`;
+
+            const width = 720;
+            const rowHeight = 52;
+            const topOffset = 88;
+            const height = topOffset + state.benchRows.length * rowHeight + 34;
+            const barLeft = 215;
+            const maxBarWidth = 365;
+
+            let rowsSVG = '';
+            state.benchRows.forEach((row, i) => {
+                const y = topOffset + i * rowHeight;
+                const w = Math.max(10, Math.round((row.val / maxVal) * maxBarWidth));
+                const barColor = row.ours ? '#FF5500' : '#262B38';
+                const labelColor = row.ours ? '#FFFFFF' : '#94A3B8';
+                const valColor = row.ours ? '#FF5500' : '#94A3B8';
+
+                rowsSVG += `
+    <g>
+        <text x="24" y="${y + 20}" font-family="'JetBrains Mono', monospace" font-size="12.5" fill="${labelColor}" font-weight="${row.ours ? '700' : '500'}">${escXml(row.name)}</text>
+        <rect x="${barLeft}" y="${y + 4}" width="${maxBarWidth}" height="24" rx="5" fill="#13161F"/>
+        <rect x="${barLeft}" y="${y + 4}" width="${w}" height="24" rx="5" fill="${barColor}">
+            <animate attributeName="width" from="0" to="${w}" dur="0.75s" fill="freeze" calcMode="spline" keySplines="0.22 1 0.36 1"/>
+        </rect>
+        <text x="${barLeft + w + 12}" y="${y + 20}" font-family="'JetBrains Mono', monospace" font-size="12" fill="${valColor}" font-weight="700">${row.val} ${unit}${row.ours ? ` (${speedupText})` : ''}</text>
+    </g>`;
+            });
+
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%">
+    <rect width="${width}" height="${height}" rx="12" fill="#090A0E" stroke="#222634" stroke-width="1.5"/>
+    <text x="24" y="34" font-family="'Inter', -apple-system, sans-serif" font-size="15" font-weight="700" fill="#F8FAFC">${escXml(title)}</text>
+    <text x="24" y="54" font-family="'JetBrains Mono', monospace" font-size="11" fill="#64748B">${escXml(env)} • ${lowerBetter ? 'Lower is better' : 'Higher is better'}</text>
+    <rect x="${width - 154}" y="20" width="130" height="28" rx="6" fill="#10B981" fill-opacity="0.14" stroke="#10B981" stroke-width="1"/>
+    <text x="${width - 89}" y="38" font-family="'JetBrains Mono', monospace" font-size="11.5" font-weight="700" fill="#34D399" text-anchor="middle">${escXml(speedupText)}</text>
+    <line x1="24" y1="68" x2="${width - 24}" y2="68" stroke="#1B1F2B" stroke-width="1"/>
+    ${rowsSVG}
+</svg>`;
+
+            state.generatedSVGs.benchmark = svg;
+            document.getElementById('bench-svg-stage').innerHTML = svg;
+            document.getElementById('bench-svg-code').textContent = svg;
+        }
+
+        // =========================================================================
+        // MODULE 03: HERO SOCIAL BANNER & PIPELINE SVG ARCHITECT
+        // =========================================================================
+        function renderBannerSVG() {
+            const repoFull = document.getElementById('meta-repo').value || 'owner/repo';
+            const parts = repoFull.split('/');
+            const owner = parts[0] || 'acme';
+            const repoName = parts[1] || parts[0] || 'project';
+            const tagline = document.getElementById('meta-tagline').value;
+            const accent = document.getElementById('banner-accent').value;
+            const pattern = document.getElementById('banner-pattern').value;
+            const version = document.getElementById('banner-version').value;
+            const lang = document.getElementById('banner-lang').value;
+
+            const steps = [
+                document.getElementById('arch-step-1').value,
+                document.getElementById('arch-step-2').value,
+                document.getElementById('arch-step-3').value,
+                document.getElementById('arch-step-4').value
+            ];
+
+            let patternDef = '';
+            if (pattern === 'blueprint') {
+                patternDef = `
+    <defs>
+        <pattern id="rf-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+            <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#161923" stroke-width="1"/>
+        </pattern>
+    </defs>
+    <rect width="760" height="250" rx="14" fill="url(#rf-grid)"/>`;
+            } else if (pattern === 'isometric') {
+                patternDef = `
+    <circle cx="670" cy="65" r="115" fill="${accent}" fill-opacity="0.06"/>
+    <circle cx="670" cy="65" r="70" fill="none" stroke="${accent}" stroke-opacity="0.22" stroke-dasharray="4 4"/>`;
+            }
+
+            let stepBoxes = '';
+            steps.forEach((st, idx) => {
+                const x = 28 + idx * 178;
+                stepBoxes += `
+    <g>
+        <rect x="${x}" y="182" width="164" height="42" rx="8" fill="#11131B" stroke="#232836" stroke-width="1"/>
+        <circle cx="${x + 15}" cy="203" r="3.5" fill="${accent}"/>
+        <text x="${x + 27}" y="207" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#F1F5F9">${escXml(st)}</text>
+    </g>`;
+            });
+
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 250" width="100%" height="100%">
+    <rect width="760" height="250" rx="14" fill="#090A0E" stroke="#222634" stroke-width="1.5"/>
+    ${patternDef}
+    <rect x="0" y="0" width="6" height="250" rx="3" fill="${accent}"/>
+    <rect x="28" y="24" width="136" height="24" rx="5" fill="${accent}" fill-opacity="0.14" stroke="${accent}" stroke-width="1"/>
+    <text x="96" y="40" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="700" fill="${accent}" text-anchor="middle">${escXml(version)}</text>
+    <rect x="174" y="24" width="144" height="24" rx="5" fill="#131620" stroke="#262B3A" stroke-width="1"/>
+    <text x="246" y="40" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="600" fill="#94A3B8" text-anchor="middle">${escXml(lang)}</text>
+    <text x="28" y="96" font-family="'Inter', -apple-system, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF" letter-spacing="-0.8">
+        <tspan fill="#64748B" font-weight="500">${escXml(owner)} / </tspan>${escXml(repoName)}
+    </text>
+    <text x="28" y="130" font-family="'Inter', -apple-system, sans-serif" font-size="14.5" fill="#94A3B8" font-weight="400">${escXml(tagline)}</text>
+    <text x="28" y="169" font-family="'JetBrains Mono', monospace" font-size="10" fill="#64748B" letter-spacing="1">SYSTEM ARCHITECTURE PIPELINE</text>
+    ${stepBoxes}
+</svg>`;
+
+            state.generatedSVGs.banner = svg;
+            document.getElementById('banner-svg-stage').innerHTML = svg;
+            document.getElementById('banner-svg-code').textContent = svg;
+        }
+
+        // =========================================================================
+        // MODULE 04: LIVE GITHUB README.MD COMPOSER & VIRAL LAUNCH AUDITOR
+        // =========================================================================
+        function renderReadmePreview() {
+            const repoFull = document.getElementById('meta-repo').value || 'your-username/repoforge-studio';
+            const tagline = document.getElementById('meta-tagline').value;
+            const installCmd = document.getElementById('meta-install').value;
+            const lang = document.getElementById('banner-lang').value;
+            const featuresRaw = document.getElementById('readme-features-input').value;
+
+            const showCi = document.getElementById('badge-ci').checked;
+            const showLic = document.getElementById('badge-license').checked;
+            const showZero = document.getElementById('badge-zerodep').checked;
+            const showBench = document.getElementById('badge-bench').checked;
+
+            const badgesMd = [];
+            if (showCi) badgesMd.push(`![Build Status](https://img.shields.io/badge/build-passing-10B981?style=flat-square)`);
+            if (showLic) badgesMd.push(`![License](https://img.shields.io/badge/license-MIT-FF5500?style=flat-square)`);
+            if (showZero) badgesMd.push(`![Dependencies](https://img.shields.io/badge/dependencies-zero-38BDF8?style=flat-square)`);
+            if (showBench) badgesMd.push(`![Standard](https://img.shields.io/badge/engine-${encodeURIComponent(lang)}-F59E0B?style=flat-square)`);
+
+            const benchTableMd = state.benchRows.map(r => `| ${r.ours ? `**${r.name}**` : r.name} | ${r.ours ? `**${r.val}**` : r.val} | ${r.ours ? '**Baseline Winner**' : 'Competitor'} |`).join('\n');
+
+            const md = `> **Template note:** Preset text and benchmark figures are illustrative, not verified. The C++ output button is a preview, not a real execution. Verify benchmark, build, license, and dependency claims before publishing.
+
+<p align="center">
+  <img src="./assets/hero-banner.svg" alt="${repoFull} Banner" width="100%" />
+</p>
+
+<p align="center">
+  ${badgesMd.join(' ')}
+</p>
+
+# ${repoFull}
+
+> **${tagline}**
+
+## Key Engineering Highlights
+
+${featuresRaw.split('\n').filter(Boolean).map(line => `- ${line}`).join('\n')}
+
+---
+
+## Quickstart & 1-Line Install
+
+\`\`\`bash
+# Install via package manager or build from C++20 source
+${installCmd}
+
+# Or compile the native C++20 engine directly:
+g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge && ./repoforge --generate-all
+\`\`\`
+
+## Interactive Terminal Telemetry
+
+<p align="center">
+  <img src="./assets/terminal-demo.svg" alt="Animated Terminal Demo" width="100%" />
+</p>
+
+## Performance Benchmarks
+
+<p align="center">
+  <img src="./assets/benchmark.svg" alt="Performance Benchmarks" width="100%" />
+</p>
+
+| Implementation | Metric Result | Status |
+| :--- | :---: | :--- |
+${benchTableMd}
+
+## License
+
+Released under the **MIT License**. Crafted with **RepoForge Studio**.
+`;
+
+            state.generatedMarkdown = md;
+            document.getElementById('readme-raw-code').textContent = md;
+
+            const featureBulletsHtml = featuresRaw.split('\n').filter(Boolean).map(line => {
+                const formatted = escXml(line)
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--text-primary)] font-semibold">$1</strong>')
+                    .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-white/[0.05] font-mono text-[#FF5500]">$1</code>');
+                return `<li class="flex items-start gap-2.5"><span class="text-[#FF5500] font-bold mt-0.5">•</span><span>${formatted}</span></li>`;
+            }).join('');
+
+            const renderedHtml = `
+                <div class="space-y-6">
+                    <div class="rounded-xl overflow-hidden shadow-lg">${state.generatedSVGs.banner}</div>
+                    <div class="flex flex-wrap gap-2">
+                        ${showCi ? `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">build // passing</span>` : ''}
+                        ${showLic ? `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#FF5500]/10 text-[#FF5500] border border-[#FF5500]/20">license // MIT</span>` : ''}
+                        ${showZero ? `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20">dependencies // zero</span>` : ''}
+                        ${showBench ? `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">spec // ${escXml(lang)}</span>` : ''}
+                    </div>
+                    <div class="border-b border-[var(--border-subtle)] pb-4">
+                        <h1 class="text-2xl font-bold tracking-tight">${escXml(repoFull)}</h1>
+                        <p class="text-sm text-[var(--text-secondary)] mt-1">${escXml(tagline)}</p>
+                    </div>
+                    <div class="space-y-2.5">
+                        <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Key Engineering Highlights</h3>
+                        <ul class="space-y-2 text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">${featureBulletsHtml}</ul>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Quickstart Installation</h3>
+                        <pre class="studio-subcard p-3.5 rounded-xl font-mono text-xs text-emerald-400 overflow-x-auto">${escXml(installCmd)}\ng++ -std=c++20 -O3 src/repoforge.cpp -o repoforge</pre>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Animated SVG Terminal Recording</h3>
+                        <div class="rounded-xl overflow-hidden shadow-lg">${state.generatedSVGs.terminal}</div>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] font-semibold">Quantitative Benchmark Verification</h3>
+                        <div class="rounded-xl overflow-hidden shadow-lg">${state.generatedSVGs.benchmark}</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('readme-rendered-view').innerHTML = renderedHtml;
+            updateViralAuditScore();
+        }
+
+        function updateViralAuditScore() {
+            const checks = [
+                { label: "Above-the-fold SVG Hero Banner & Pipeline", pass: state.generatedSVGs.banner.length > 100, pts: 20 },
+                { label: "Zero-GIF Pure SVG Animated Terminal (<8KB)", pass: state.termSteps.length >= 3, pts: 25 },
+                { label: "Quantitative Speedup Benchmark Chart", pass: state.benchRows.length >= 2, pts: 20 },
+                { label: "1-Line Copyable Quickstart Command", pass: document.getElementById('meta-install').value.trim().length > 4, pts: 15 },
+                { label: "Example C++20 source section included", pass: true, pts: 20 }
+            ];
+            const score = checks.reduce((acc, c) => acc + (c.pass ? c.pts : 0), 0);
+            document.getElementById('header-viral-score').textContent = `${score}/100`;
+            document.getElementById('viral-score-big').textContent = `${score}/100`;
+
+            document.getElementById('viral-checklist').innerHTML = checks.map(c => `
+                <div class="studio-subcard rounded-xl p-2.5 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="${c.pass ? 'text-emerald-400' : 'text-amber-400'} font-mono font-bold">${c.pass ? '✓' : '!'}</span>
+                        <span class="text-[var(--text-primary)]">${c.label}</span>
+                    </div>
+                    <span class="font-mono text-[11px] text-[var(--text-muted)]">+${c.pts}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleReadmeView(mode) {
+            state.readmeView = mode;
+            document.getElementById('readme-rendered-view').classList.toggle('hidden', mode !== 'preview');
+            document.getElementById('readme-raw-view').classList.toggle('hidden', mode !== 'raw');
+            document.getElementById('readme-tab-preview').className = mode === 'preview'
+                ? 'px-3 py-1 rounded-md text-xs font-mono bg-[var(--bg-elevated)] text-[var(--text-primary)] font-medium transition-all'
+                : 'px-3 py-1 rounded-md text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all';
+            document.getElementById('readme-tab-raw').className = mode === 'raw'
+                ? 'px-3 py-1 rounded-md text-xs font-mono bg-[var(--bg-elevated)] text-[var(--text-primary)] font-medium transition-all'
+                : 'px-3 py-1 rounded-md text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all';
+        }
+
+        // =========================================================================
+        // MODULE 05: EXAMPLE C++20 SOURCE GENERATOR (repoforge.cpp)
+        // =========================================================================
+        function renderCppEngineCode() {
+            const repoFull = document.getElementById('meta-repo').value || 'your-username/repoforge-studio';
+            const tagline = document.getElementById('meta-tagline').value;
+            const benchTitle = document.getElementById('bench-title').value;
+
+            const benchInitializer = state.benchRows.map(r =>
+                `        {"${r.name.replace(/"/g, '\\"')}", ${r.val.toFixed(2)}, ${r.ours ? 'true' : 'false'}}`
+            ).join(',\n');
+
+            const cpp = `// ============================================================================
+// repoforge.cpp — Native C++20 SVG Benchmark, Terminal & README Launch Engine
+// Repository : ${repoFull}
+// Build      : g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge
+// Usage      : ./repoforge --generate-all
+// ============================================================================
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <string_view>
+#include <chrono>
+#include <algorithm>
+#include <iomanip>
+#include <cmath>
+
+namespace repoforge {
+
+struct BenchmarkContender {
+    std::string name;
+    double value_ms;
+    bool is_primary;
+};
+
+struct ProjectConfig {
+    std::string repo_slug = "${repoFull.replace(/"/g, '\\"')}";
+    std::string tagline   = "${tagline.replace(/"/g, '\\"')}";
+    std::string bench_title = "${benchTitle.replace(/"/g, '\\"')}";
+    std::vector<BenchmarkContender> contenders = {
+${benchInitializer}
+    };
+};
+
+// Escape XML entities in O(N) single pass
+[[nodiscard]] std::string escape_xml(std::string_view input) {
+    std::string out;
+    out.reserve(input.size() + 16);
+    for (char c : input) {
+        switch (c) {
+            case '&':  out.append("&amp;");  break;
+            case '<':  out.append("&lt;");   break;
+            case '>':  out.append("&gt;");   break;
+            case '"':  out.append("&quot;"); break;
+            case '\\'': out.append("&apos;"); break;
+            default:   out.push_back(c);     break;
+        }
+    }
+    return out;
+}
+
+// Synthesize standalone Retina SVG Benchmark Bar Chart
+[[nodiscard]] std::string emit_benchmark_svg(const ProjectConfig& cfg) {
+    double max_val = 0.01;
+    double primary_val = 1.0;
+    double worst_val = 1.0;
+
+    for (const auto& c : cfg.contenders) {
+        max_val = std::max(max_val, c.value_ms);
+        worst_val = std::max(worst_val, c.value_ms);
+        if (c.is_primary) primary_val = std::max(0.001, c.value_ms);
+    }
+
+    const double speedup = worst_val / primary_val;
+    const int width = 720;
+    const int row_h = 52;
+    const int top_y = 88;
+    const int height = top_y + static_cast<int>(cfg.contenders.size()) * row_h + 34;
+
+    std::ostringstream svg;
+    svg << std::fixed << std::setprecision(1);
+    svg << "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 " << width << " " << height << "\\">\\n"
+        << "  <rect width=\\"" << width << "\\" height=\\"" << height << "\\" rx=\\"12\\" fill=\\"#090A0E\\" stroke=\\"#222634\\" stroke-width=\\"1.5\\"/>\\n"
+        << "  <text x=\\"24\\" y=\\"36\\" font-family=\\"Inter, sans-serif\\" font-size=\\"15\\" font-weight=\\"700\\" fill=\\"#F8FAFC\\">"
+        << escape_xml(cfg.bench_title) << "</text>\\n"
+        << "  <text x=\\"24\\" y=\\"56\\" font-family=\\"JetBrains Mono, monospace\\" font-size=\\"11\\" fill=\\"#34D399\\">Peak Speedup: "
+        << speedup << "x Faster vs Baseline</text>\\n";
+
+    for (std::size_t i = 0; i < cfg.contenders.size(); ++i) {
+        const auto& row = cfg.contenders[i];
+        const int y = top_y + static_cast<int>(i) * row_h;
+        const int bar_w = std::max(10, static_cast<int>((row.value_ms / max_val) * 365.0));
+        const char* color = row.is_primary ? "#FF5500" : "#262B38";
+
+        svg << "  <text x=\\"24\\" y=\\"" << (y + 20) << "\\" font-family=\\"JetBrains Mono, monospace\\" font-size=\\"12.5\\" fill=\\"#F8FAFC\\">"
+            << escape_xml(row.name) << "</text>\\n"
+            << "  <rect x=\\"215\\" y=\\"" << (y + 4) << "\\" width=\\"" << bar_w << "\\" height=\\"24\\" rx=\\"5\\" fill=\\"" << color << "\\"/>\\n"
+            << "  <text x=\\"" << (227 + bar_w) << "\\" y=\\"" << (y + 20) << "\\" font-family=\\"JetBrains Mono, monospace\\" font-size=\\"12\\" fill=\\"#FF5500\\">"
+            << row.value_ms << " ms</text>\\n";
+    }
+    svg << "</svg>\\n";
+    return svg.str();
+}
+
+} // namespace repoforge
+
+int main(int argc, char** argv) {
+    const auto t0 = std::chrono::steady_clock::now();
+    repoforge::ProjectConfig cfg;
+
+    std::ofstream bench_out("benchmark.svg");
+    bench_out << repoforge::emit_benchmark_svg(cfg);
+    bench_out.close();
+
+    const auto t1 = std::chrono::steady_clock::now();
+    const double elapsed_us = std::chrono::duration<double, std::micro>(t1 - t0).count();
+
+    std::cout << "[RepoForge C++20] Synthesized benchmark.svg for " << cfg.repo_slug
+              << " in " << std::fixed << std::setprecision(2) << elapsed_us << " us.\\n";
+    return 0;
+}
+`;
+            state.generatedCpp = cpp;
+            document.getElementById('cpp-source-code').textContent = cpp;
+        }
+
+        function simulateCppExecution() {
+            const out = document.getElementById('cpp-sim-output');
+            out.classList.remove('hidden');
+            const repo = document.getElementById('meta-repo').value;
+            out.textContent = `SIMULATION ONLY — no compiler or C++ program was run.
+This is illustrative output, not a build log or measured result.
+
+$ g++ -std=c++20 -O3 src/repoforge.cpp -o repoforge
+$ ./repoforge
+[Example preview] Project: ${repo}
+[Example preview] Run the commands yourself to verify the generated source and output.`;
+            showToast('Sample output only; no code was executed');
+        }
+
+        // =========================================================================
+        // MODULE 06: INTERACTIVE FIRST-TIMER'S GITHUB LAUNCH ROADMAP
+        // =========================================================================
+        function updateGitHubGuide() {
+            const user = (document.getElementById('guide-username').value || 'your-username').trim();
+            const repo = (document.getElementById('guide-reponame').value || 'repoforge').trim();
+            document.getElementById('tree-root-name').textContent = `${repo}/`;
+            renderGitHubGuideSteps(user, repo);
+        }
+
+        function toggleGuideStepDone(stepNum) {
+            state.guideCompletedSteps[stepNum] = !state.guideCompletedSteps[stepNum];
+            const total = 6;
+            const done = Object.values(state.guideCompletedSteps).filter(Boolean).length;
+            const pct = Math.round((done / total) * 100);
+            document.getElementById('guide-progress-badge').textContent = `${done} / ${total} Done`;
+            document.getElementById('guide-progress-pct').textContent = `${pct}%`;
+            document.getElementById('guide-progress-bar').style.width = `${pct}%`;
+            updateGitHubGuide();
+        }
+
+        function renderGitHubGuideSteps(user, repo) {
+            const tagline = document.getElementById('meta-tagline').value;
+            const gitCommands = `mkdir -p ${repo}/assets ${repo}/src
+cd ${repo}
+
+# Move your downloaded files into this folder, then run:
+git init
+git add .
+git commit -m "feat: initial release of ${repo} studio & C++20 engine"
+git branch -M main
+git remote add origin https://github.com/${user}/${repo}.git
+git push -u origin main`;
+
+            const showHnPost = `Title: Show HN: ${repo} – ${tagline}
+
+I built ${repo} (https://github.com/${user}/${repo}), a browser-based starter for drafting project READMEs and creating editable SVG assets. The preset project details and benchmark numbers are illustrative examples, not measured results. The C++ preview does not compile or execute code.
+
+Live site: https://${user}.github.io/${repo}/
+
+Please replace the sample content and verify every claim before sharing. Feedback is welcome; reach and stars are not guaranteed.`;
+
+            const steps = [
+                {
+                    num: 1,
+                    tag: "STEP 01 // PREPARATION",
+                    title: "Download Your 5 Generated Assets & Organize Your Folder",
+                    desc: "Before opening GitHub, create a folder on your computer named <code>" + escXml(repo) + "</code> with two subfolders inside it: <code>assets/</code> and <code>src/</code>.",
+                    body: `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div class="studio-subcard p-3.5 rounded-xl space-y-1.5">
+                                <div class="text-xs font-mono font-semibold text-[var(--text-primary)]">1. Root Folder (<code>${escXml(repo)}/</code>)</div>
+                                <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">Put <code>README.md</code> and <code>index.html</code> (this web app) directly inside the main folder.</p>
+                            </div>
+                            <div class="studio-subcard p-3.5 rounded-xl space-y-1.5">
+                                <div class="text-xs font-mono font-semibold text-[var(--text-primary)]">2. Subfolders (<code>assets/</code> &amp; <code>src/</code>)</div>
+                                <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">Put the 3 <code>.svg</code> files inside <code>assets/</code>, and put <code>repoforge.cpp</code> inside <code>src/</code>.</p>
+                            </div>
+                        </div>
+                        <div class="pt-2 flex flex-wrap gap-2">
+                            <button onclick="exportAllAssetsModal()" class="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-mono">Download All Files Now</button>
+                        </div>
+                    `
+                },
+                {
+                    num: 2,
+                    tag: "STEP 02 // GITHUB.COM",
+                    title: "Create a New Empty Repository on GitHub",
+                    desc: "Go to <a href='https://github.com/new' target='_blank' rel='noopener noreferrer' class='text-[#FF5500] underline font-mono'>github.com/new</a> and fill out the form using these exact settings:",
+                    body: `
+                        <div class="studio-subcard rounded-xl p-4 space-y-2.5 text-xs">
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-emerald-400 font-mono font-bold">✓</span>
+                                <div><strong class="text-[var(--text-primary)]">Repository name:</strong> Type <code class="px-1.5 py-0.5 rounded bg-black/40 font-mono text-[#FF5500]">${escXml(repo)}</code></div>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-emerald-400 font-mono font-bold">✓</span>
+                                <div><strong class="text-[var(--text-primary)]">Description:</strong> Copy &amp; paste: <code class="px-1.5 py-0.5 rounded bg-black/40 font-mono text-[var(--text-secondary)]">${escXml(tagline)}</code></div>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-emerald-400 font-mono font-bold">✓</span>
+                                <div><strong class="text-[var(--text-primary)]">Visibility:</strong> Choose <strong>Public</strong> (so people can star it and GitHub Pages works for free).</div>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-rose-400 font-mono font-bold">✕</span>
+                                <div><strong class="text-rose-300">IMPORTANT — Leave "Add a README file" UNCHECKED:</strong> Because you already generated a custom <code>README.md</code> here in RepoForge, leave GitHub's default checkbox unchecked so it doesn't conflict!</div>
+                            </div>
+                        </div>
+                    `
+                },
+                {
+                    num: 3,
+                    tag: "STEP 03 // TERMINAL PUSH",
+                    title: "Push Your Folder to GitHub in 60 Seconds",
+                    desc: "Open your terminal (Terminal on Mac/Linux, or PowerShell / Git Bash on Windows) and run these exact commands personalized for <code>" + escXml(user) + "/" + escXml(repo) + "</code>:",
+                    body: `
+                        <div class="relative">
+                            <pre class="studio-subcard p-4 rounded-xl font-mono text-xs text-emerald-400 overflow-x-auto leading-relaxed select-all">${escXml(gitCommands)}</pre>
+                            <button onclick="copyTextToClipboard(${JSON.stringify(gitCommands).replace(/"/g, '&quot;')}, 'Git Push Commands')" class="absolute top-3 right-3 btn-ghost px-2.5 py-1 rounded-md text-[11px] font-mono">Copy Commands</button>
+                        </div>
+                        <p class="text-[11px] text-[var(--text-secondary)]">
+                            <strong class="text-[var(--text-primary)]">What do these commands do?</strong> <code>git init</code> turns your folder into a Git project, <code>git add .</code> stages your files, <code>git commit</code> saves a snapshot, and <code>git push</code> uploads everything to <code>github.com/${escXml(user)}/${escXml(repo)}</code>!
+                        </p>
+                    `
+                },
+                {
+                    num: 4,
+                    tag: "STEP 04 // LIVE WEB HOSTING",
+                    title: "Publish This Studio with GitHub Pages",
+                    desc: "GitHub Pages can publish a static <code>index.html</code> site from your repository. Configure the source branch and path, then confirm the Pages deployment status before sharing the address:",
+                    body: `
+                        <ol class="space-y-2 text-xs text-[var(--text-secondary)] list-decimal list-inside studio-subcard p-4 rounded-xl">
+                            <li>On your GitHub repo page, click the <strong class="text-[var(--text-primary)]">Settings</strong> tab at the top.</li>
+                            <li>In the left sidebar, click <strong class="text-[var(--text-primary)]">Pages</strong>.</li>
+                            <li>Under <strong class="text-[var(--text-primary)]">Build and deployment → Branch</strong>, change <em>None</em> to <code class="text-[#FF5500] font-mono">main</code> and click <strong class="text-[var(--text-primary)]">Save</strong>.</li>
+                            <li>Wait for GitHub Pages to report a successful deployment, then visit <code class="text-emerald-400 font-mono">https://${escXml(user)}.github.io/${escXml(repo)}/</code> and verify the site before sharing it.</li>
+                        </ol>
+                    `
+                },
+                {
+                    num: 5,
+                    tag: "STEP 05 // DISCOVERABILITY",
+                    title: "Add GitHub Topics & Your Live Website Link",
+                    desc: "Add topics to categorize your repository and help relevant users discover it. Topics do not guarantee placement on GitHub Trending:",
+                    body: `
+                        <div class="studio-subcard p-4 rounded-xl space-y-2 text-xs text-[var(--text-secondary)]">
+                            <p>1. On the main page of your repo, click the <strong class="text-[var(--text-primary)]">Gear Icon (⚙️)</strong> next to the <strong>About</strong> section on the top right.</p>
+                            <p>2. Check <strong class="text-[var(--text-primary)]">"Use your GitHub Pages website"</strong> so your live link appears right at the top.</p>
+                            <p>3. Under <strong class="text-[var(--text-primary)]">Topics</strong>, add these tags: <code class="text-[#FF5500] font-mono">cpp20</code>, <code class="text-[#FF5500] font-mono">svg-animation</code>, <code class="text-[#FF5500] font-mono">developer-tools</code>, <code class="text-[#FF5500] font-mono">readme-generator</code>, <code class="text-[#FF5500] font-mono">benchmark</code>.</p>
+                        </div>
+                    `
+                },
+                {
+                    num: 6,
+                    tag: "STEP 06 // SHOW THE WORLD",
+                    title: "Copy-Paste Launch Post for Hacker News, Reddit & X",
+                    desc: "Optional launch-post draft. Personalize it and verify all project claims before sharing; audience response is not guaranteed:",
+                    body: `
+                        <div class="relative">
+                            <pre class="studio-subcard p-4 rounded-xl font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed select-all">${escXml(showHnPost)}</pre>
+                            <button onclick="copyTextToClipboard(${JSON.stringify(showHnPost).replace(/"/g, '&quot;')}, 'Show HN Launch Post')" class="absolute top-3 right-3 btn-ghost px-2.5 py-1 rounded-md text-[11px] font-mono">Copy Launch Post</button>
+                        </div>
+                    `
+                }
+            ];
+
+            const container = document.getElementById('guide-steps-container');
+            container.innerHTML = steps.map(s => {
+                const isDone = state.guideCompletedSteps[s.num];
+                return `
+                    <div class="studio-card rounded-2xl p-5 space-y-3.5 transition-all ${isDone ? 'border-emerald-500/40' : ''}">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <span class="text-[10px] font-mono uppercase tracking-widest ${isDone ? 'text-emerald-400' : 'text-[#FF5500]'} font-semibold">${s.tag}</span>
+                                <h3 class="text-base font-semibold tracking-tight mt-0.5">${s.title}</h3>
+                            </div>
+                            <button onclick="toggleGuideStepDone(${s.num})" class="px-3 py-1 rounded-lg font-mono text-xs transition-all flex items-center gap-1.5 shrink-0 ${isDone ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'btn-ghost'}">
+                                <span>${isDone ? '✓ Completed' : 'Mark Done'}</span>
+                            </button>
+                        </div>
+                        <p class="text-xs text-[var(--text-secondary)] leading-relaxed">${s.desc}</p>
+                        ${s.body}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =========================================================================
+        // COMMAND PALETTE (⌘K) LOGIC
+        // =========================================================================
+        const COMMAND_ITEMS = [
+            { label: "01. Switch to Animated Terminal SVG Studio", tag: "Workspace", action: () => switchWorkspace('terminal') },
+            { label: "02. Switch to Benchmark SVG Compiler", tag: "Workspace", action: () => switchWorkspace('benchmark') },
+            { label: "03. Switch to Hero Banner & Badge Architect", tag: "Workspace", action: () => switchWorkspace('banner') },
+            { label: "04. Switch to Live README.md Composer", tag: "Workspace", action: () => switchWorkspace('readme') },
+            { label: "05. Switch to Native C++20 CLI Engine", tag: "Workspace", action: () => switchWorkspace('cpp') },
+            { label: "06. Open First-Timer's GitHub Launch Roadmap", tag: "Guide", action: () => switchWorkspace('guide') },
+            { label: "Preset: Load HyperVec (C++20 SIMD Engine)", tag: "Preset", action: () => { document.getElementById('preset-selector').value = 'cpp_engine'; loadPreset('cpp_engine'); } },
+            { label: "Preset: Load RepoForge Self-Hosting Preset", tag: "Preset", action: () => { document.getElementById('preset-selector').value = 'local_studio'; loadPreset('local_studio'); } },
+            { label: "Export: Open Complete Ship Kit Download Modal", tag: "Export", action: () => exportAllAssetsModal() },
+            { label: "View: Toggle 3D Isometric Stage Tilt", tag: "View", action: () => toggleStagePerspective() },
+            { label: "View: Toggle Dark / Light Studio Theme", tag: "Theme", action: () => toggleTheme() }
+        ];
+
+        function openCommandPalette() {
+            const modal = document.getElementById('cmd-palette-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const input = document.getElementById('cmd-palette-input');
+            input.value = '';
+            filterCommandPalette('');
+            setTimeout(() => input.focus(), 30);
+        }
+
+        function closeCommandPalette() {
+            const modal = document.getElementById('cmd-palette-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function filterCommandPalette(query) {
+            const q = query.toLowerCase().trim();
+            const list = document.getElementById('cmd-palette-list');
+            const filtered = COMMAND_ITEMS.filter(item => item.label.toLowerCase().includes(q) || item.tag.toLowerCase().includes(q));
+            list.innerHTML = filtered.map((item, idx) => `
+                <button onclick="triggerCommandItem(${COMMAND_ITEMS.indexOf(item)})" class="w-full px-3 py-2.5 rounded-xl flex items-center justify-between text-left hover:bg-white/[0.06] transition-colors">
+                    <span class="text-[var(--text-primary)]">${item.label}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">${item.tag}</span>
+                </button>
+            `).join('');
+        }
+
+        function triggerCommandItem(idx) {
+            closeCommandPalette();
+            if (COMMAND_ITEMS[idx]) COMMAND_ITEMS[idx].action();
+        }
+
+        // =========================================================================
+        // SPRING SLIDING NAVIGATION INDICATOR & WORKSPACE SWITCHER
+        // =========================================================================
+        function updateNavPillIndicator() {
+            const activeBtn = document.getElementById(`ws-btn-${state.activeWorkspace}`);
+            const pill = document.getElementById('nav-pill-indicator');
+            if (!activeBtn || !pill) return;
+            pill.style.width = `${activeBtn.offsetWidth}px`;
+            pill.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+        }
+
+        function switchWorkspace(ws) {
+            state.activeWorkspace = ws;
+            const workspaces = ['terminal', 'benchmark', 'banner', 'readme', 'cpp', 'guide'];
+            workspaces.forEach(k => {
+                const sec = document.getElementById(`workspace-${k}`);
+                const btn = document.getElementById(`ws-btn-${k}`);
+                if (k === ws) {
+                    sec.classList.remove('hidden', 'workspace-enter');
+                    sec.classList.add('grid');
+                    void sec.offsetWidth; // trigger reflow for smooth entrance animation
+                    sec.classList.add('workspace-enter');
+                    btn.classList.remove('text-[var(--text-secondary)]');
+                    btn.classList.add('text-[var(--text-primary)]');
+                } else {
+                    sec.classList.add('hidden');
+                    sec.classList.remove('grid', 'workspace-enter');
+                    btn.classList.remove('text-[var(--text-primary)]');
+                    btn.classList.add('text-[var(--text-secondary)]');
+                }
+            });
+            updateNavPillIndicator();
+        }
+
+        window.addEventListener('resize', updateNavPillIndicator);
+
+        function loadPreset(presetKey) {
+            const p = PRESETS[presetKey];
+            if (!p) return;
+            document.getElementById('meta-repo').value = p.repo;
+            document.getElementById('meta-tagline').value = p.tagline;
+            document.getElementById('meta-install').value = p.install;
+            document.getElementById('banner-version').value = p.version;
+            document.getElementById('banner-lang').value = p.lang;
+            document.getElementById('arch-step-1').value = p.arch[0];
+            document.getElementById('arch-step-2').value = p.arch[1];
+            document.getElementById('arch-step-3').value = p.arch[2];
+            document.getElementById('arch-step-4').value = p.arch[3];
+            document.getElementById('term-title').value = p.termTitle;
+            document.getElementById('bench-title').value = p.benchTitle;
+            document.getElementById('bench-env').value = p.benchEnv;
+            document.getElementById('bench-metric').value = p.benchMetric;
+
+            state.termSteps = JSON.parse(JSON.stringify(p.termSteps));
+            state.benchRows = JSON.parse(JSON.stringify(p.benchRows));
+
+            renderTerminalStepsEditor();
+            renderBenchmarkRowsEditor();
+            syncGlobalMeta();
+            showToast(`Loaded preset: ${p.repo}`);
+        }
+
+        function syncGlobalMeta() {
+            const repoVal = document.getElementById('meta-repo').value || 'your-username/repoforge';
+            const parts = repoVal.split('/');
+            if (parts.length === 2) {
+                document.getElementById('guide-username').value = parts[0];
+                document.getElementById('guide-reponame').value = parts[1];
+            }
+            renderTerminalSVG();
+            renderBenchmarkSVG();
+            renderBannerSVG();
+            renderReadmePreview();
+            renderCppEngineCode();
+            updateGitHubGuide();
+        }
+
+        function exportAllAssetsModal() {
+            const modal = document.getElementById('ship-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeShipModal() {
+            const modal = document.getElementById('ship-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-icon-sun').classList.toggle('hidden', isDark);
+            document.getElementById('theme-icon-moon').classList.toggle('hidden', !isDark);
+        }
+
+        window.onload = function () {
+            renderTerminalStepsEditor();
+            renderBenchmarkRowsEditor();
+            syncGlobalMeta();
+            setTimeout(updateNavPillIndicator, 50);
+        };
+    </script>
+</body>
+</html>
